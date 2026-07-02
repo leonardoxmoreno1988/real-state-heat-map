@@ -12,6 +12,7 @@ type Thermal = "hot" | "even" | "cold";
 interface Neighborhood {
   id: string;
   name: string;
+  shortName: string;
   points: string; // SVG polygon points
   labelX: number;
   labelY: number;
@@ -26,6 +27,7 @@ const NEIGHBORHOODS: Neighborhood[] = [
   {
     id: "harlem",
     name: "Harlem",
+    shortName: "Harlem",
     points: "60,40 240,40 240,140 60,140",
     labelX: 150,
     labelY: 92,
@@ -37,6 +39,7 @@ const NEIGHBORHOODS: Neighborhood[] = [
   {
     id: "uws",
     name: "Upper West Side",
+    shortName: "UWS",
     points: "60,140 150,140 150,300 60,300",
     labelX: 105,
     labelY: 222,
@@ -48,8 +51,9 @@ const NEIGHBORHOODS: Neighborhood[] = [
   {
     id: "ues",
     name: "Upper East Side",
+    shortName: "UES",
     points: "195,140 240,140 240,300 195,300",
-    labelX: 218,
+    labelX: 217,
     labelY: 222,
     base: 5.4,
     dom: 84,
@@ -59,6 +63,7 @@ const NEIGHBORHOODS: Neighborhood[] = [
   {
     id: "midtown",
     name: "Midtown",
+    shortName: "Midtown",
     points: "60,300 240,300 240,400 60,400",
     labelX: 150,
     labelY: 352,
@@ -70,6 +75,7 @@ const NEIGHBORHOODS: Neighborhood[] = [
   {
     id: "chelsea",
     name: "Chelsea",
+    shortName: "Chelsea",
     points: "60,400 150,400 150,510 60,510",
     labelX: 105,
     labelY: 458,
@@ -81,6 +87,7 @@ const NEIGHBORHOODS: Neighborhood[] = [
   {
     id: "gramercy",
     name: "Gramercy",
+    shortName: "Gramercy",
     points: "150,400 240,400 240,510 150,510",
     labelX: 195,
     labelY: 458,
@@ -92,6 +99,7 @@ const NEIGHBORHOODS: Neighborhood[] = [
   {
     id: "soho",
     name: "SoHo",
+    shortName: "SoHo",
     points: "60,510 240,510 240,600 60,600",
     labelX: 150,
     labelY: 558,
@@ -103,6 +111,7 @@ const NEIGHBORHOODS: Neighborhood[] = [
   {
     id: "fidi",
     name: "FiDi",
+    shortName: "FiDi",
     points: "80,600 220,600 200,700 100,700",
     labelX: 150,
     labelY: 650,
@@ -245,13 +254,20 @@ function Index() {
               Alta<span className="text-muted-foreground font-normal"> Heatmap</span>
             </span>
           </div>
-          <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+          <button
+            type="button"
+            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:bg-secondary hover:text-primary"
+            aria-label="Change borough"
+          >
             Manhattan
-          </span>
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden>
+              <path d="M2.5 4.5L6 8l3.5-3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
         </div>
 
         {/* Global filters */}
-        <div className="mx-auto flex max-w-3xl flex-col gap-2 px-5 pb-3 pt-1 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto flex max-w-3xl flex-col gap-2.5 px-5 pb-4 pt-2 sm:flex-row sm:items-center sm:justify-between">
           <Segmented
             options={["All", "Condo", "Co-op", "TH"] as const}
             value={globalType}
@@ -266,11 +282,12 @@ function Index() {
       </header>
 
       {/* Map area */}
-      <main className="relative flex-1 overflow-hidden">
-        <div className="relative mx-auto flex h-[calc(100vh-11rem)] max-w-3xl items-center justify-center px-4">
+      <main className="relative flex-1 overflow-y-auto overflow-x-hidden">
+        <div className="relative mx-auto flex min-h-full max-w-3xl items-start justify-center px-4 pb-24 pt-4">
           <svg
             viewBox="0 0 300 750"
-            className="h-full w-auto max-w-full drop-shadow-[0_20px_40px_rgba(15,23,42,0.06)]"
+            preserveAspectRatio="xMidYMid meet"
+            className="h-auto max-h-[calc(100vh-12rem)] w-full max-w-[420px] drop-shadow-[0_20px_40px_rgba(15,23,42,0.06)]"
             role="img"
             aria-label="Manhattan neighborhoods heatmap"
           >
@@ -300,14 +317,14 @@ function Index() {
                   x={n.labelX}
                   y={n.labelY}
                   textAnchor="middle"
-                  dominantBaseline="middle"
-                  fontSize="10"
-                  fontWeight={600}
-                  letterSpacing="0.02em"
+                  dominantBaseline="central"
+                  fontSize="8.5"
+                  fontWeight={500}
+                  letterSpacing="0.06em"
                   fill="var(--primary)"
                   style={{ pointerEvents: "none" }}
                 >
-                  {n.name}
+                  {n.shortName}
                 </text>
               </g>
             ))}
@@ -322,23 +339,25 @@ function Index() {
             />
             <text
               x="172.5"
-              y="220"
+              y="216"
               textAnchor="middle"
-              fontSize="8"
+              dominantBaseline="central"
+              fontSize="6.5"
               fontWeight={600}
               fill="var(--park-stroke)"
-              style={{ pointerEvents: "none", letterSpacing: "0.05em" }}
+              style={{ pointerEvents: "none", letterSpacing: "0.12em" }}
             >
               CENTRAL
             </text>
             <text
               x="172.5"
-              y="232"
+              y="226"
               textAnchor="middle"
-              fontSize="8"
+              dominantBaseline="central"
+              fontSize="6.5"
               fontWeight={600}
               fill="var(--park-stroke)"
-              style={{ pointerEvents: "none", letterSpacing: "0.05em" }}
+              style={{ pointerEvents: "none", letterSpacing: "0.12em" }}
             >
               PARK
             </text>
