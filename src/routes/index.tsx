@@ -387,7 +387,7 @@ function Index() {
   );
 }
 
-function LegendRow({ color, icon, label }: { color: string; icon: string; label: string }) {
+function LegendRow({ color, label }: { color: string; label: string }) {
   return (
     <div className="flex items-center gap-2">
       <span
@@ -395,10 +395,7 @@ function LegendRow({ color, icon, label }: { color: string; icon: string; label:
         style={{ backgroundColor: color }}
         aria-hidden
       />
-      <span className="text-muted-foreground">
-        <span className="mr-1">{icon}</span>
-        {label}
-      </span>
+      <span className="text-muted-foreground">{label}</span>
     </div>
   );
 }
