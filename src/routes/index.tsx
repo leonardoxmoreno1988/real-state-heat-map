@@ -254,13 +254,20 @@ function Index() {
               Alta<span className="text-muted-foreground font-normal"> Heatmap</span>
             </span>
           </div>
-          <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+          <button
+            type="button"
+            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:bg-secondary hover:text-primary"
+            aria-label="Change borough"
+          >
             Manhattan
-          </span>
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden>
+              <path d="M2.5 4.5L6 8l3.5-3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
         </div>
 
         {/* Global filters */}
-        <div className="mx-auto flex max-w-3xl flex-col gap-2 px-5 pb-3 pt-1 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto flex max-w-3xl flex-col gap-2.5 px-5 pb-4 pt-2 sm:flex-row sm:items-center sm:justify-between">
           <Segmented
             options={["All", "Condo", "Co-op", "TH"] as const}
             value={globalType}
@@ -275,11 +282,12 @@ function Index() {
       </header>
 
       {/* Map area */}
-      <main className="relative flex-1 overflow-hidden">
-        <div className="relative mx-auto flex h-[calc(100vh-11rem)] max-w-3xl items-center justify-center px-4">
+      <main className="relative flex-1 overflow-y-auto overflow-x-hidden">
+        <div className="relative mx-auto flex min-h-full max-w-3xl items-start justify-center px-4 pb-24 pt-4">
           <svg
             viewBox="0 0 300 750"
-            className="h-full w-auto max-w-full drop-shadow-[0_20px_40px_rgba(15,23,42,0.06)]"
+            preserveAspectRatio="xMidYMid meet"
+            className="h-auto max-h-[calc(100vh-12rem)] w-full max-w-[420px] drop-shadow-[0_20px_40px_rgba(15,23,42,0.06)]"
             role="img"
             aria-label="Manhattan neighborhoods heatmap"
           >
@@ -309,14 +317,14 @@ function Index() {
                   x={n.labelX}
                   y={n.labelY}
                   textAnchor="middle"
-                  dominantBaseline="middle"
-                  fontSize="10"
-                  fontWeight={600}
-                  letterSpacing="0.02em"
+                  dominantBaseline="central"
+                  fontSize="8.5"
+                  fontWeight={500}
+                  letterSpacing="0.06em"
                   fill="var(--primary)"
                   style={{ pointerEvents: "none" }}
                 >
-                  {n.name}
+                  {n.shortName}
                 </text>
               </g>
             ))}
@@ -331,23 +339,25 @@ function Index() {
             />
             <text
               x="172.5"
-              y="220"
+              y="216"
               textAnchor="middle"
-              fontSize="8"
+              dominantBaseline="central"
+              fontSize="6.5"
               fontWeight={600}
               fill="var(--park-stroke)"
-              style={{ pointerEvents: "none", letterSpacing: "0.05em" }}
+              style={{ pointerEvents: "none", letterSpacing: "0.12em" }}
             >
               CENTRAL
             </text>
             <text
               x="172.5"
-              y="232"
+              y="226"
               textAnchor="middle"
-              fontSize="8"
+              dominantBaseline="central"
+              fontSize="6.5"
               fontWeight={600}
               fill="var(--park-stroke)"
-              style={{ pointerEvents: "none", letterSpacing: "0.05em" }}
+              style={{ pointerEvents: "none", letterSpacing: "0.12em" }}
             >
               PARK
             </text>
