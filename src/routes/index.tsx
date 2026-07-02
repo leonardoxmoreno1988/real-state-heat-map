@@ -519,7 +519,7 @@ function BottomSheet({
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-5 pb-3 pt-3">
+            <div className="flex-1 overflow-y-auto px-5 pb-3 pt-3 md:px-8 md:pt-4">
               {/* Local filters */}
               <div className="flex flex-wrap items-center gap-2">
                 <Segmented
