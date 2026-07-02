@@ -77,14 +77,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Alta Heatmap — Manhattan Real Estate Market Analytics" },
+      { name: "description", content: "Live Manhattan real estate heatmap. Track hot, even, and cold neighborhood markets by property type and size." },
+      { name: "author", content: "Alta" },
+      { property: "og:title", content: "Alta Heatmap — Manhattan Real Estate Analytics" },
+      { property: "og:description", content: "Live Manhattan real estate heatmap. Track hot, even, and cold neighborhood markets by property type and size." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:site", content: "@Alta" },
     ],
     links: [
       {
