@@ -401,17 +401,26 @@ function LegendRow({ color, label }: { color: string; label: string }) {
 }
 
 function LogoA() {
+  // Alta isotype: open "A" from two diagonal strokes, inner triangle at the peak,
+  // and a floating cyan bar across the base gap.
   return (
-    <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden>
-      <rect width="32" height="32" rx="8" fill="var(--primary)" />
+    <svg
+      viewBox="0 0 40 40"
+      className="h-8 w-auto"
+      role="img"
+      aria-label="Alta"
+      fill="none"
+    >
+      <path d="M20 4 L4.5 35" stroke="#111f2f" strokeWidth="3" strokeLinecap="square" />
+      <path d="M20 4 L35.5 35" stroke="#111f2f" strokeWidth="3" strokeLinecap="square" />
       <path
-        d="M9 24 L16 8 L23 24 M12 19 L20 19"
-        stroke="var(--primary-foreground)"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        d="M20 16 L14.5 26 L25.5 26 Z"
+        stroke="#111f2f"
+        strokeWidth="2"
+        strokeLinejoin="miter"
         fill="none"
       />
+      <rect x="12.5" y="33.5" width="15" height="2.4" fill="#3EB6DC" />
     </svg>
   );
 }
