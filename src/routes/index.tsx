@@ -283,7 +283,7 @@ function Index() {
       </header>
 
       {/* Map area */}
-      <main className="relative flex-1 overflow-hidden">
+      <main className="relative flex-1 overflow-hidden bg-[var(--water)]">
         <div className="relative mx-auto flex h-full max-w-3xl items-center justify-center px-4 py-3">
           <svg
             viewBox="0 0 300 750"
@@ -292,8 +292,7 @@ function Index() {
             role="img"
             aria-label="Manhattan neighborhoods heatmap"
           >
-            {/* water backdrop */}
-            <rect width="300" height="750" fill="var(--water)" rx="24" />
+            {/* water backdrop is now the main area background */}
 
             {polygonState.map(({ n, thermal, isSelected }) => (
               <g
@@ -478,7 +477,7 @@ function BottomSheet({
       )}
       <aside
         aria-hidden={!open}
-        className={`fixed z-50 flex flex-col border border-border/70 bg-card transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] inset-x-0 bottom-0 mx-auto max-w-3xl rounded-2xl shadow-[0_-20px_60px_-20px_rgba(15,23,42,0.25)] md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2 md:mx-0 md:w-[min(576px,92vw)] md:max-w-xl md:rounded-2xl md:shadow-[0_30px_80px_-20px_rgba(15,23,42,0.35)] ${
+        className={`fixed z-50 flex flex-col overflow-hidden border border-border/70 bg-card transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] inset-x-0 bottom-0 mx-auto max-w-3xl rounded-2xl shadow-[0_-20px_60px_-20px_rgba(15,23,42,0.25)] md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2 md:mx-0 md:w-[min(576px,92vw)] md:max-w-xl md:rounded-2xl md:shadow-[0_30px_80px_-20px_rgba(15,23,42,0.35)] ${
           open
             ? "translate-y-0 opacity-100 md:-translate-x-1/2 md:-translate-y-1/2"
             : "translate-y-full opacity-0 pointer-events-none md:-translate-x-1/2 md:-translate-y-[calc(50%-12px)]"
