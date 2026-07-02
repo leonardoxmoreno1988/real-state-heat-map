@@ -251,7 +251,7 @@ function Index() {
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-5">
           <div className="flex items-center gap-2.5">
             <LogoA />
-            <span className="text-[15px] font-semibold tracking-tight text-primary">
+            <span className="text-[17px] font-semibold tracking-tight text-primary">
               Alta<span className="text-muted-foreground font-normal"> Heatmap</span>
             </span>
           </div>
@@ -322,8 +322,7 @@ function Index() {
                   y={n.labelY}
                   textAnchor="middle"
                   dominantBaseline="central"
-                  fontSize="11.5"
-                  fontWeight={500}
+                  className="neighborhood-label"
                   letterSpacing="0.06em"
                   fill="var(--primary)"
                   style={{ pointerEvents: "none" }}
