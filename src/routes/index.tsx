@@ -244,7 +244,7 @@ function Index() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
+    <div className="flex h-[100dvh] flex-col overflow-hidden bg-background text-foreground">
       {/* Navbar */}
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-5">
@@ -282,12 +282,12 @@ function Index() {
       </header>
 
       {/* Map area */}
-      <main className="relative flex-1 overflow-y-auto overflow-x-hidden">
-        <div className="relative mx-auto flex min-h-full max-w-3xl items-start justify-center px-4 pb-24 pt-4">
+      <main className="relative flex-1 overflow-hidden">
+        <div className="relative mx-auto flex h-full max-w-3xl items-center justify-center px-4 py-3">
           <svg
             viewBox="0 0 300 750"
             preserveAspectRatio="xMidYMid meet"
-            className="h-auto max-h-[calc(100vh-12rem)] w-full max-w-[420px] drop-shadow-[0_20px_40px_rgba(15,23,42,0.06)]"
+            className="mx-auto h-full max-h-full w-auto max-w-full drop-shadow-[0_20px_40px_rgba(15,23,42,0.06)]"
             role="img"
             aria-label="Manhattan neighborhoods heatmap"
           >
@@ -363,12 +363,12 @@ function Index() {
             </text>
           </svg>
 
-          {/* Legend */}
-          <div className="pointer-events-none absolute bottom-4 left-4 flex flex-col gap-1.5 rounded-2xl border border-border/60 bg-card/85 px-3 py-2.5 text-[11px] shadow-sm backdrop-blur-md">
-            <LegendRow color="var(--hot)" label="Hot · Seller's" />
-            <LegendRow color="var(--even)" label="Even · Neutral" />
-            <LegendRow color="var(--cold)" label="Cold · Buyer's" />
-          </div>
+        </div>
+        {/* Legend */}
+        <div className="pointer-events-none absolute bottom-4 left-4 z-10 flex flex-col gap-1.5 rounded-2xl border border-border/60 bg-card/85 px-3 py-2.5 text-[11px] shadow-sm backdrop-blur-md">
+          <LegendRow color="var(--hot)" label="Hot · Seller's" />
+          <LegendRow color="var(--even)" label="Even · Neutral" />
+          <LegendRow color="var(--cold)" label="Cold · Buyer's" />
         </div>
       </main>
 
