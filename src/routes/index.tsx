@@ -623,7 +623,7 @@ function LeadCapture({ neighborhoodName }: { neighborhoodName: string }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-4 rounded-2xl border border-border/70 bg-secondary/40 p-3.5"
+      className="mt-4 rounded-none border border-border/70 bg-secondary/40 p-3.5"
     >
       <p className="text-[12.5px] leading-snug tracking-tight text-primary">
         Sign me up if the heatmap changes in{" "}
