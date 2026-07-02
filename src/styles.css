@@ -73,19 +73,19 @@
   --card-foreground: oklch(0.18 0.02 260);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.18 0.02 260);
-  --primary: #111f2f;
+  --primary: #183659;
   --primary-foreground: oklch(0.99 0 0);
   --secondary: oklch(0.965 0.005 260);
-  --secondary-foreground: #111f2f;
+  --secondary-foreground: #183659;
   --muted: oklch(0.965 0.005 260);
   --muted-foreground: oklch(0.52 0.02 260);
   --accent: oklch(0.965 0.005 260);
-  --accent-foreground: #111f2f;
+  --accent-foreground: #183659;
   --destructive: oklch(0.6 0.22 25);
   --destructive-foreground: oklch(0.99 0 0);
   --border: oklch(0.93 0.005 260);
   --input: oklch(0.93 0.005 260);
-  --ring: #111f2f;
+  --ring: #183659;
 
   /* Alta thermal tokens */
   --hot: oklch(0.62 0.24 340);           /* sophisticated magenta/fuchsia */

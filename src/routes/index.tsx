@@ -218,6 +218,7 @@ function Index() {
   const [globalType, setGlobalType] = useState<PropertyType>("All");
   const [globalSize, setGlobalSize] = useState<SizeType>("All");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [localType, setLocalType] = useState<PropertyType>("All");
   const [localSize, setLocalSize] = useState<SizeType>("All");
 
@@ -298,19 +299,22 @@ function Index() {
               <g
                 key={n.id}
                 onClick={() => handleSelect(n.id)}
+                onMouseEnter={() => setHoveredId(n.id)}
+                onMouseLeave={() => setHoveredId(null)}
                 style={{
                   cursor: "pointer",
                   transformOrigin: `${n.labelX}px ${n.labelY}px`,
                   transform: isSelected ? "scale(1.015)" : "scale(1)",
-                  transition: "transform 300ms cubic-bezier(0.22, 1, 0.36, 1), opacity 300ms",
+                  transition: "transform 300ms cubic-bezier(0.22, 1, 0.36, 1), opacity 300ms, filter 200ms",
                   opacity: selectedId && !isSelected ? 0.55 : 1,
+                  filter: hoveredId === n.id && !isSelected ? "brightness(1.06)" : "none",
                 }}
               >
                 <polygon
                   points={n.points}
                   fill={THERMAL_FILL[thermal]}
                   stroke={THERMAL_STROKE[thermal]}
-                  strokeWidth={isSelected ? 1.6 : 0.8}
+                  strokeWidth={isSelected ? 1.6 : hoveredId === n.id ? 1.2 : 0.8}
                   style={{ transition: "fill 400ms ease, stroke-width 200ms" }}
                 />
                 <text
@@ -318,7 +322,7 @@ function Index() {
                   y={n.labelY}
                   textAnchor="middle"
                   dominantBaseline="central"
-                  fontSize="8.5"
+                  fontSize="11.5"
                   fontWeight={500}
                   letterSpacing="0.06em"
                   fill="var(--primary)"
@@ -342,7 +346,7 @@ function Index() {
               y="216"
               textAnchor="middle"
               dominantBaseline="central"
-              fontSize="6.5"
+              fontSize="8.5"
               fontWeight={600}
               fill="var(--park-stroke)"
               style={{ pointerEvents: "none", letterSpacing: "0.12em" }}
@@ -354,7 +358,7 @@ function Index() {
               y="226"
               textAnchor="middle"
               dominantBaseline="central"
-              fontSize="6.5"
+              fontSize="8.5"
               fontWeight={600}
               fill="var(--park-stroke)"
               style={{ pointerEvents: "none", letterSpacing: "0.12em" }}
@@ -413,7 +417,7 @@ function LogoA() {
     >
       <path
         d="M4.5 35 L20 4 L35.5 35"
-        stroke="#111f2f"
+        stroke="#183659"
         strokeWidth="3"
         strokeLinejoin="miter"
         strokeMiterlimit="10"
@@ -422,7 +426,7 @@ function LogoA() {
       />
       <path
         d="M20 16 L14.5 26 L25.5 26 Z"
-        stroke="#111f2f"
+        stroke="#183659"
         strokeWidth="2"
         strokeLinejoin="miter"
         fill="none"
@@ -552,8 +556,7 @@ function BottomSheet({
             <div className="shrink-0 border-t border-border/60 bg-card px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
               <button
                 type="button"
-                style={{ backgroundColor: "#204978" }}
-                className="flex w-full items-center justify-center gap-2 rounded-full py-3.5 text-sm font-semibold tracking-[0.08em] text-primary-foreground transition-transform hover:scale-[1.01] active:scale-[0.99]"
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-[#55acde] py-3.5 text-sm font-semibold tracking-[0.08em] text-[#183659] transition-transform hover:scale-[1.01] active:scale-[0.99]"
               >
                 SEE LISTINGS
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
