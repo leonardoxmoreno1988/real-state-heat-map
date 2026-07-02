@@ -267,7 +267,7 @@ function Index() {
         </div>
 
         {/* Global filters */}
-        <div className="mx-auto flex max-w-3xl flex-col gap-2.5 px-5 pb-4 pt-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto flex max-w-3xl flex-col gap-4 px-5 pb-4 pt-2 sm:flex-row sm:items-center sm:justify-start">
           <Segmented
             options={["All", "Condo", "Co-op", "TH"] as const}
             value={globalType}
