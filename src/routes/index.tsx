@@ -550,7 +550,7 @@ function BottomSheet({
               <LeadCapture neighborhoodName={neighborhood.name} />
             </div>
 
-            <div className="shrink-0 border-t border-border/60 bg-card px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
+            <div className="shrink-0 border-t border-border/60 bg-card px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 md:border-t-0 md:px-8 md:pb-7 md:pt-4">
               <button
                 type="button"
                 className="flex w-full items-center justify-center gap-2 rounded-full bg-[#55acde] py-3.5 text-sm font-semibold tracking-[0.08em] text-[#183659] transition-transform hover:scale-[1.01] active:scale-[0.99]"
