@@ -137,10 +137,21 @@ function thermalFor(supply: number): Thermal {
 function computeMetrics(n: Neighborhood, type: PropertyType, size: SizeType) {
   const factor = TYPE_FACTORS[type] * SIZE_FACTORS[size];
   const supply = +(n.base * factor).toFixed(1);
-  const dom = Math.round(n.dom * factor);
+  const thermal = thermalFor(supply);
+  // Reinforce color/data duality: DOM tracks the thermal state.
+  // Hot markets clear fast; cold markets linger.
+  const idHash = n.id.charCodeAt(0) + n.id.charCodeAt(n.id.length - 1);
+  let dom: number;
+  if (thermal === "hot") {
+    dom = 20 + (idHash % 12); // 20–31 days
+  } else if (thermal === "cold") {
+    dom = 82 + (idHash % 18); // 82–99 days
+  } else {
+    dom = 55 + (idHash % 15); // 55–69 days
+  }
   const ppsf = Math.round(n.ppsf * (2 - SIZE_FACTORS[size]) * (type === "Condo" ? 1.08 : type === "Co-op" ? 0.92 : 1));
   const inContract = Math.max(4, Math.round(n.inContract / factor));
-  return { supply, dom, ppsf, inContract, thermal: thermalFor(supply) };
+  return { supply, dom, ppsf, inContract, thermal };
 }
 
 const THERMAL_FILL: Record<Thermal, string> = {
