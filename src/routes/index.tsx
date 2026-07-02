@@ -12,6 +12,7 @@ type Thermal = "hot" | "even" | "cold";
 interface Neighborhood {
   id: string;
   name: string;
+  shortName: string;
   points: string; // SVG polygon points
   labelX: number;
   labelY: number;
