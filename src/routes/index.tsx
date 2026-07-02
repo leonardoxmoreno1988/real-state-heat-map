@@ -552,9 +552,13 @@ function BottomSheet({
             <div className="shrink-0 border-t border-border/60 bg-card px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
               <button
                 type="button"
-                className="w-full rounded-full bg-primary py-3.5 text-sm font-semibold tracking-[0.08em] text-primary-foreground transition-transform hover:scale-[1.01] active:scale-[0.99]"
+                style={{ backgroundColor: "#204978" }}
+                className="flex w-full items-center justify-center gap-2 rounded-full py-3.5 text-sm font-semibold tracking-[0.08em] text-primary-foreground transition-transform hover:scale-[1.01] active:scale-[0.99]"
               >
                 SEE LISTINGS
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </button>
             </div>
           </>
