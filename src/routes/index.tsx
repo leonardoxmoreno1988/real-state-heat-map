@@ -511,9 +511,11 @@ function BottomSheet({
               <Metric label="In Contract" value={`${metrics.inContract}`} />
             </div>
 
+            <LeadCapture neighborhoodName={neighborhood.name} />
+
             <button
               type="button"
-              className="mt-4 w-full rounded-full bg-primary py-3.5 text-sm font-semibold tracking-[0.08em] text-primary-foreground transition-transform hover:scale-[1.01] active:scale-[0.99]"
+              className="mt-3 w-full rounded-full bg-primary py-3.5 text-sm font-semibold tracking-[0.08em] text-primary-foreground transition-transform hover:scale-[1.01] active:scale-[0.99]"
             >
               SEE LISTINGS
             </button>
