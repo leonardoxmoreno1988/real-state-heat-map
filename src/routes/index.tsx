@@ -365,7 +365,7 @@ function Index() {
 
         </div>
         {/* Legend */}
-        <div className="pointer-events-none absolute bottom-4 left-4 z-10 flex flex-col gap-1.5 rounded-2xl border border-border/60 bg-card/85 px-3 py-2.5 text-[11px] shadow-sm backdrop-blur-md">
+        <div className="pointer-events-none absolute bottom-4 left-4 z-10 flex flex-col gap-1.5 rounded-none border border-border/60 bg-card/85 px-3 py-2.5 text-[11px] shadow-none backdrop-blur-md">
           <LegendRow color="var(--hot)" label="Hot · Seller's" />
           <LegendRow color="var(--even)" label="Even · Neutral" />
           <LegendRow color="var(--cold)" label="Cold · Buyer's" />
@@ -620,7 +620,7 @@ function LeadCapture({ neighborhoodName }: { neighborhoodName: string }) {
       className="mt-4 rounded-2xl border border-border/70 bg-secondary/40 p-3.5"
     >
       <p className="text-[12.5px] leading-snug tracking-tight text-primary">
-        Sign me up if the weather changes in{" "}
+        Sign me up if the heatmap changes in{" "}
         <span className="font-semibold">{neighborhoodName}</span>.
       </p>
       <div className="mt-2.5 flex items-center gap-2">
