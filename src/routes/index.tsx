@@ -448,7 +448,7 @@ function BottomSheet({
         className={`fixed inset-x-0 bottom-0 z-50 mx-auto max-w-3xl rounded-t-[28px] border border-border/70 bg-card shadow-[0_-20px_60px_-20px_rgba(15,23,42,0.25)] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
           open ? "translate-y-0" : "translate-y-full"
         }`}
-        style={{ height: "34vh", minHeight: 340 }}
+        style={{ height: "48vh", minHeight: 460 }}
       >
         <div className="flex items-center justify-center pt-2.5">
           <span className="h-1.5 w-10 rounded-full bg-border" />
