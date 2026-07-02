@@ -96,6 +96,9 @@
   --park: oklch(0.82 0.11 145 / 0.55);
   --park-stroke: oklch(0.55 0.12 145);
   --water: oklch(0.96 0.01 220);
+}
+
+
 
 
 .dark {
