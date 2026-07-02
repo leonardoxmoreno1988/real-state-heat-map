@@ -218,6 +218,7 @@ function Index() {
   const [globalType, setGlobalType] = useState<PropertyType>("All");
   const [globalSize, setGlobalSize] = useState<SizeType>("All");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [localType, setLocalType] = useState<PropertyType>("All");
   const [localSize, setLocalSize] = useState<SizeType>("All");
 
