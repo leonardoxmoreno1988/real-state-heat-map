@@ -283,7 +283,7 @@ function Index() {
       </header>
 
       {/* Map area */}
-      <main className="relative flex-1 overflow-hidden">
+      <main className="relative flex-1 overflow-hidden bg-[var(--water)]">
         <div className="relative mx-auto flex h-full max-w-3xl items-center justify-center px-4 py-3">
           <svg
             viewBox="0 0 300 750"
