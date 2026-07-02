@@ -80,11 +80,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Alta Heatmap — Manhattan Real Estate Market Analytics" },
       { name: "description", content: "Live Manhattan real estate heatmap. Track hot, even, and cold neighborhood markets by property type and size." },
       { name: "author", content: "Alta" },
-      { property: "og:title", content: "Alta Heatmap — Manhattan Real Estate Analytics" },
+      { property: "og:title", content: "Alta Heatmap — Manhattan Real Estate Market Analytics" },
       { property: "og:description", content: "Live Manhattan real estate heatmap. Track hot, even, and cold neighborhood markets by property type and size." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Alta" },
+      { name: "twitter:title", content: "Alta Heatmap — Manhattan Real Estate Market Analytics" },
+      { name: "twitter:description", content: "Live Manhattan real estate heatmap. Track hot, even, and cold neighborhood markets by property type and size." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0e826df0-c728-4ea5-b349-3326708dcd8e/id-preview-33b9e761--e811fb8c-145c-43d2-87db-b462f939d53e.lovable.app-1783007702676.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0e826df0-c728-4ea5-b349-3326708dcd8e/id-preview-33b9e761--e811fb8c-145c-43d2-87db-b462f939d53e.lovable.app-1783007702676.png" },
     ],
     links: [
       {
