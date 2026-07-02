@@ -292,8 +292,7 @@ function Index() {
             role="img"
             aria-label="Manhattan neighborhoods heatmap"
           >
-            {/* water backdrop */}
-            <rect width="300" height="750" fill="var(--water)" rx="24" />
+            {/* water backdrop is now the main area background */}
 
             {polygonState.map(({ n, thermal, isSelected }) => (
               <g
