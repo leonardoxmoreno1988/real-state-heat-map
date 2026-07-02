@@ -539,3 +539,78 @@ function Metric({ label, value, unit }: { label: string; value: string; unit?: s
     </div>
   );
 }
+
+function LeadCapture({ neighborhoodName }: { neighborhoodName: string }) {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle" | "success">("idle");
+  const [error, setError] = useState<string | null>(null);
+
+  // Reset when the selected neighborhood changes
+  useEffect(() => {
+    setEmail("");
+    setStatus("idle");
+    setError(null);
+  }, [neighborhoodName]);
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = email.trim();
+    if (!emailRegex.test(trimmed) || trimmed.length > 255) {
+      setError("Please enter a valid email.");
+      return;
+    }
+    setError(null);
+    setStatus("success");
+  };
+
+  if (status === "success") {
+    return (
+      <div
+        role="status"
+        className="mt-4 rounded-2xl border border-border/70 bg-secondary/60 px-4 py-3 text-[13px] font-medium leading-snug text-primary transition-all duration-500"
+      >
+        <span className="mr-1.5 text-hot">✓</span>
+        Perfect! We will notify you if the real estate climate shifts in this
+        neighborhood.
+      </div>
+    );
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="mt-4 rounded-2xl border border-border/70 bg-secondary/40 p-3.5"
+    >
+      <p className="text-[12.5px] leading-snug tracking-tight text-primary">
+        Sign me up if the weather changes in{" "}
+        <span className="font-semibold">{neighborhoodName}</span>.
+      </p>
+      <div className="mt-2.5 flex items-center gap-2">
+        <input
+          type="email"
+          required
+          maxLength={255}
+          value={email}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (error) setError(null);
+          }}
+          placeholder="you@email.com"
+          aria-label="Email address"
+          className="h-10 flex-1 rounded-full border border-border bg-card px-4 text-[13px] text-primary placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15"
+        />
+        <button
+          type="submit"
+          className="h-10 shrink-0 rounded-full bg-primary px-4 text-[12.5px] font-semibold tracking-tight text-primary-foreground transition-transform hover:scale-[1.02] active:scale-[0.98]"
+        >
+          Notify Me
+        </button>
+      </div>
+      {error && (
+        <p className="mt-1.5 text-[11px] text-destructive">{error}</p>
+      )}
+    </form>
+  );
+}
