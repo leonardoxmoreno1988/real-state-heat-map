@@ -411,8 +411,15 @@ function LogoA() {
       aria-label="Alta"
       fill="none"
     >
-      <path d="M20 4 L4.5 35" stroke="#111f2f" strokeWidth="3" strokeLinecap="square" />
-      <path d="M20 4 L35.5 35" stroke="#111f2f" strokeWidth="3" strokeLinecap="square" />
+      <path
+        d="M4.5 35 L20 4 L35.5 35"
+        stroke="#111f2f"
+        strokeWidth="3"
+        strokeLinejoin="miter"
+        strokeMiterlimit="10"
+        strokeLinecap="butt"
+        fill="none"
+      />
       <path
         d="M20 16 L14.5 26 L25.5 26 Z"
         stroke="#111f2f"
