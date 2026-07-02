@@ -491,7 +491,7 @@ function BottomSheet({
 
         {neighborhood && metrics && (
           <>
-            <div className="flex shrink-0 items-start justify-between gap-3 px-5 pt-3">
+            <div className="flex shrink-0 items-start justify-between gap-3 px-5 pt-3 md:px-8 md:pt-7">
               <div>
                 <h2 className="text-2xl font-semibold tracking-tight text-primary">
                   {neighborhood.name}
