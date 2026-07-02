@@ -365,9 +365,9 @@ function Index() {
 
           {/* Legend */}
           <div className="pointer-events-none absolute bottom-4 left-4 flex flex-col gap-1.5 rounded-2xl border border-border/60 bg-card/85 px-3 py-2.5 text-[11px] shadow-sm backdrop-blur-md">
-            <LegendRow color="var(--hot)" icon="🔥" label="Hot · Seller's" />
-            <LegendRow color="var(--even)" icon="⬜" label="Even · Neutral" />
-            <LegendRow color="var(--cold)" icon="❄️" label="Cold · Buyer's" />
+            <LegendRow color="var(--hot)" label="Hot · Seller's" />
+            <LegendRow color="var(--even)" label="Even · Neutral" />
+            <LegendRow color="var(--cold)" label="Cold · Buyer's" />
           </div>
         </div>
       </main>
