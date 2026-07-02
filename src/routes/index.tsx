@@ -461,18 +461,18 @@ function BottomSheet({
       )}
       <aside
         aria-hidden={!open}
-        className={`fixed inset-x-0 bottom-0 z-50 mx-auto max-w-3xl rounded-t-[28px] border border-border/70 bg-card shadow-[0_-20px_60px_-20px_rgba(15,23,42,0.25)] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+        className={`fixed inset-x-0 bottom-0 z-50 mx-auto flex max-w-3xl flex-col rounded-t-[28px] border border-border/70 bg-card shadow-[0_-20px_60px_-20px_rgba(15,23,42,0.25)] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
           open ? "translate-y-0" : "translate-y-full"
         }`}
-        style={{ height: "48vh", minHeight: 460 }}
+        style={{ maxHeight: "88vh", height: "auto" }}
       >
-        <div className="flex items-center justify-center pt-2.5">
+        <div className="flex shrink-0 items-center justify-center pt-2.5">
           <span className="h-1.5 w-10 rounded-full bg-border" />
         </div>
 
         {neighborhood && metrics && (
-          <div className="flex h-[calc(100%-1.25rem)] flex-col px-5 pb-5 pt-3">
-            <div className="flex items-start justify-between gap-3">
+          <>
+            <div className="flex shrink-0 items-start justify-between gap-3 px-5 pt-3">
               <div>
                 <h2 className="text-2xl font-semibold tracking-tight text-primary">
                   {neighborhood.name}
@@ -500,42 +500,46 @@ function BottomSheet({
               </button>
             </div>
 
-            {/* Local filters */}
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              <Segmented
-                size="sm"
-                options={["All", "Condo", "Co-op", "TH"] as const}
-                value={localType}
-                onChange={setLocalType}
-              />
-              <Segmented
-                size="sm"
-                options={["All", "1 Bed", "2 Bed", "3 Bed"] as const}
-                value={localSize}
-                onChange={setLocalSize}
-              />
+            <div className="flex-1 overflow-y-auto px-5 pb-3 pt-3">
+              {/* Local filters */}
+              <div className="flex flex-wrap items-center gap-2">
+                <Segmented
+                  size="sm"
+                  options={["All", "Condo", "Co-op", "TH"] as const}
+                  value={localType}
+                  onChange={setLocalType}
+                />
+                <Segmented
+                  size="sm"
+                  options={["All", "1 Bed", "2 Bed", "3 Bed"] as const}
+                  value={localSize}
+                  onChange={setLocalSize}
+                />
+              </div>
+
+              {/* Metrics 2x2 */}
+              <div className="mt-4 grid grid-cols-2 gap-2.5">
+                <Metric label="Supply" value={`${metrics.supply}`} unit="mo" />
+                <Metric label="Avg DOM" value={`${metrics.dom}`} unit="days" />
+                <Metric
+                  label="Avg Price / sqft"
+                  value={`$${metrics.ppsf.toLocaleString()}`}
+                />
+                <Metric label="In Contract" value={`${metrics.inContract}`} />
+              </div>
+
+              <LeadCapture neighborhoodName={neighborhood.name} />
             </div>
 
-            {/* Metrics 2x2 */}
-            <div className="mt-4 grid flex-1 grid-cols-2 gap-2.5">
-              <Metric label="Supply" value={`${metrics.supply}`} unit="mo" />
-              <Metric label="Avg DOM" value={`${metrics.dom}`} unit="days" />
-              <Metric
-                label="Avg Price / sqft"
-                value={`$${metrics.ppsf.toLocaleString()}`}
-              />
-              <Metric label="In Contract" value={`${metrics.inContract}`} />
+            <div className="shrink-0 border-t border-border/60 bg-card px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
+              <button
+                type="button"
+                className="w-full rounded-full bg-primary py-3.5 text-sm font-semibold tracking-[0.08em] text-primary-foreground transition-transform hover:scale-[1.01] active:scale-[0.99]"
+              >
+                SEE LISTINGS
+              </button>
             </div>
-
-            <LeadCapture neighborhoodName={neighborhood.name} />
-
-            <button
-              type="button"
-              className="mt-3 w-full rounded-full bg-primary py-3.5 text-sm font-semibold tracking-[0.08em] text-primary-foreground transition-transform hover:scale-[1.01] active:scale-[0.99]"
-            >
-              SEE LISTINGS
-            </button>
-          </div>
+          </>
         )}
       </aside>
     </>
