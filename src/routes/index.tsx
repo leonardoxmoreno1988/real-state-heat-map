@@ -611,7 +611,7 @@ function LeadCapture({ neighborhoodName }: { neighborhoodName: string }) {
     return (
       <div
         role="status"
-        className="mt-4 rounded-2xl border border-border/70 bg-secondary/60 px-4 py-3 text-[13px] font-medium leading-snug text-primary transition-all duration-500"
+        className="mt-4 rounded-none border border-border/70 bg-secondary/60 px-4 py-3 text-[13px] font-medium leading-snug text-primary transition-all duration-500"
       >
         <span className="mr-1.5 text-hot">✓</span>
         Perfect! We will notify you if the real estate climate shifts in this
