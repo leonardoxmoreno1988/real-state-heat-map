@@ -154,11 +154,27 @@
 .neighborhood-label {
   font-size: 15px;
   font-weight: 700;
+  letter-spacing: 0.04em;
 }
 
-@media (min-width: 640px) {
+@media (min-width: 768px) {
   .neighborhood-label {
-    font-size: 29px;
-    font-weight: 500;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+}
+
+.park-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+@media (min-width: 768px) {
+  .park-label {
+    font-size: 7px;
+    font-weight: 600;
   }
 }

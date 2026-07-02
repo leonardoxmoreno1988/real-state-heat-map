@@ -345,10 +345,9 @@ function Index() {
               y="216"
               textAnchor="middle"
               dominantBaseline="central"
-              fontSize="8.5"
-              fontWeight={600}
+              className="park-label"
               fill="var(--park-stroke)"
-              style={{ pointerEvents: "none", letterSpacing: "0.12em" }}
+              style={{ pointerEvents: "none" }}
             >
               CENTRAL
             </text>
@@ -357,10 +356,9 @@ function Index() {
               y="226"
               textAnchor="middle"
               dominantBaseline="central"
-              fontSize="8.5"
-              fontWeight={600}
+              className="park-label"
               fill="var(--park-stroke)"
-              style={{ pointerEvents: "none", letterSpacing: "0.12em" }}
+              style={{ pointerEvents: "none" }}
             >
               PARK
             </text>
@@ -475,25 +473,25 @@ function BottomSheet({
           type="button"
           aria-label="Close panel"
           onClick={onClose}
-          className="fixed inset-0 z-40 bg-primary/10 backdrop-blur-[2px] transition-opacity animate-fade-in"
+          className="fixed inset-0 z-40 bg-primary/20 backdrop-blur-sm transition-opacity animate-fade-in"
         />
       )}
       <aside
         aria-hidden={!open}
-        className={`fixed z-50 flex flex-col border border-border/70 bg-card transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] inset-x-0 bottom-0 mx-auto max-w-3xl rounded-t-[28px] shadow-[0_-20px_60px_-20px_rgba(15,23,42,0.25)] sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:mx-0 sm:w-[min(560px,92vw)] sm:max-w-none sm:rounded-2xl sm:shadow-[0_30px_80px_-20px_rgba(15,23,42,0.35)] ${
+        className={`fixed z-50 flex flex-col border border-border/70 bg-card transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] inset-x-0 bottom-0 mx-auto max-w-3xl rounded-t-[28px] shadow-[0_-20px_60px_-20px_rgba(15,23,42,0.25)] md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2 md:mx-0 md:w-[min(576px,92vw)] md:max-w-xl md:rounded-xl md:shadow-[0_30px_80px_-20px_rgba(15,23,42,0.35)] ${
           open
-            ? "translate-y-0 opacity-100 sm:-translate-x-1/2 sm:-translate-y-1/2"
-            : "translate-y-full opacity-0 pointer-events-none sm:-translate-x-1/2 sm:-translate-y-[calc(50%-12px)]"
+            ? "translate-y-0 opacity-100 md:-translate-x-1/2 md:-translate-y-1/2"
+            : "translate-y-full opacity-0 pointer-events-none md:-translate-x-1/2 md:-translate-y-[calc(50%-12px)]"
         }`}
         style={{ maxHeight: "88vh", height: "auto" }}
       >
-        <div className="flex shrink-0 items-center justify-center pt-2.5">
+        <div className="flex shrink-0 items-center justify-center pt-2.5 md:hidden">
           <span className="h-1.5 w-10 rounded-full bg-border" />
         </div>
 
         {neighborhood && metrics && (
           <>
-            <div className="flex shrink-0 items-start justify-between gap-3 px-5 pt-3">
+            <div className="flex shrink-0 items-start justify-between gap-3 px-5 pt-3 md:px-8 md:pt-7">
               <div>
                 <h2 className="text-2xl font-semibold tracking-tight text-primary">
                   {neighborhood.name}
@@ -521,7 +519,7 @@ function BottomSheet({
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-5 pb-3 pt-3">
+            <div className="flex-1 overflow-y-auto px-5 pb-3 pt-3 md:px-8 md:pt-4">
               {/* Local filters */}
               <div className="flex flex-wrap items-center gap-2">
                 <Segmented
@@ -552,7 +550,7 @@ function BottomSheet({
               <LeadCapture neighborhoodName={neighborhood.name} />
             </div>
 
-            <div className="shrink-0 border-t border-border/60 bg-card px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
+            <div className="shrink-0 border-t border-border/60 bg-card px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 md:border-t-0 md:px-8 md:pb-7 md:pt-4">
               <button
                 type="button"
                 className="flex w-full items-center justify-center gap-2 rounded-full bg-[#55acde] py-3.5 text-sm font-semibold tracking-[0.08em] text-[#183659] transition-transform hover:scale-[1.01] active:scale-[0.99]"
