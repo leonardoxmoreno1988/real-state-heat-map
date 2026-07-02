@@ -88,9 +88,9 @@
   --ring: #183659;
 
   /* Alta thermal tokens */
-  --hot: oklch(0.62 0.24 340);           /* sophisticated magenta/fuchsia */
-  --hot-fill: oklch(0.62 0.24 340 / 0.32);
-  --hot-stroke: oklch(0.5 0.22 340);
+  --hot: #E11D48;                        /* deep rose / carmine */
+  --hot-fill: rgba(225, 29, 72, 0.32);
+  --hot-stroke: #BE123C;
   --even: oklch(0.78 0.005 260);         /* premium light gray */
   --even-fill: oklch(0.78 0.005 260 / 0.42);
   --even-stroke: oklch(0.62 0.005 260);
@@ -148,5 +148,17 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+  }
+}
+
+.neighborhood-label {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+@media (min-width: 640px) {
+  .neighborhood-label {
+    font-size: 29px;
+    font-weight: 500;
   }
 }
