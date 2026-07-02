@@ -477,8 +477,10 @@ function BottomSheet({
       )}
       <aside
         aria-hidden={!open}
-        className={`fixed inset-x-0 bottom-0 z-50 mx-auto flex max-w-3xl flex-col rounded-t-[28px] border border-border/70 bg-card shadow-[0_-20px_60px_-20px_rgba(15,23,42,0.25)] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-          open ? "translate-y-0" : "translate-y-full"
+        className={`fixed z-50 flex flex-col border border-border/70 bg-card transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] inset-x-0 bottom-0 mx-auto max-w-3xl rounded-t-[28px] shadow-[0_-20px_60px_-20px_rgba(15,23,42,0.25)] sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:mx-0 sm:w-[min(560px,92vw)] sm:max-w-none sm:rounded-2xl sm:shadow-[0_30px_80px_-20px_rgba(15,23,42,0.35)] ${
+          open
+            ? "translate-y-0 opacity-100 sm:-translate-x-1/2 sm:-translate-y-1/2"
+            : "translate-y-full opacity-0 pointer-events-none sm:-translate-x-1/2 sm:-translate-y-[calc(50%-12px)]"
         }`}
         style={{ maxHeight: "88vh", height: "auto" }}
       >
