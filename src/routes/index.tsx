@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -137,10 +137,21 @@ function thermalFor(supply: number): Thermal {
 function computeMetrics(n: Neighborhood, type: PropertyType, size: SizeType) {
   const factor = TYPE_FACTORS[type] * SIZE_FACTORS[size];
   const supply = +(n.base * factor).toFixed(1);
-  const dom = Math.round(n.dom * factor);
+  const thermal = thermalFor(supply);
+  // Reinforce color/data duality: DOM tracks the thermal state.
+  // Hot markets clear fast; cold markets linger.
+  const idHash = n.id.charCodeAt(0) + n.id.charCodeAt(n.id.length - 1);
+  let dom: number;
+  if (thermal === "hot") {
+    dom = 20 + (idHash % 12); // 20–31 days
+  } else if (thermal === "cold") {
+    dom = 82 + (idHash % 18); // 82–99 days
+  } else {
+    dom = 55 + (idHash % 15); // 55–69 days
+  }
   const ppsf = Math.round(n.ppsf * (2 - SIZE_FACTORS[size]) * (type === "Condo" ? 1.08 : type === "Co-op" ? 0.92 : 1));
   const inContract = Math.max(4, Math.round(n.inContract / factor));
-  return { supply, dom, ppsf, inContract, thermal: thermalFor(supply) };
+  return { supply, dom, ppsf, inContract, thermal };
 }
 
 const THERMAL_FILL: Record<Thermal, string> = {
@@ -437,7 +448,7 @@ function BottomSheet({
         className={`fixed inset-x-0 bottom-0 z-50 mx-auto max-w-3xl rounded-t-[28px] border border-border/70 bg-card shadow-[0_-20px_60px_-20px_rgba(15,23,42,0.25)] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
           open ? "translate-y-0" : "translate-y-full"
         }`}
-        style={{ height: "34vh", minHeight: 340 }}
+        style={{ height: "48vh", minHeight: 460 }}
       >
         <div className="flex items-center justify-center pt-2.5">
           <span className="h-1.5 w-10 rounded-full bg-border" />
@@ -500,9 +511,11 @@ function BottomSheet({
               <Metric label="In Contract" value={`${metrics.inContract}`} />
             </div>
 
+            <LeadCapture neighborhoodName={neighborhood.name} />
+
             <button
               type="button"
-              className="mt-4 w-full rounded-full bg-primary py-3.5 text-sm font-semibold tracking-[0.08em] text-primary-foreground transition-transform hover:scale-[1.01] active:scale-[0.99]"
+              className="mt-3 w-full rounded-full bg-primary py-3.5 text-sm font-semibold tracking-[0.08em] text-primary-foreground transition-transform hover:scale-[1.01] active:scale-[0.99]"
             >
               SEE LISTINGS
             </button>
@@ -524,5 +537,80 @@ function Metric({ label, value, unit }: { label: string; value: string; unit?: s
         {unit && <span className="text-[11px] text-muted-foreground">{unit}</span>}
       </span>
     </div>
+  );
+}
+
+function LeadCapture({ neighborhoodName }: { neighborhoodName: string }) {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle" | "success">("idle");
+  const [error, setError] = useState<string | null>(null);
+
+  // Reset when the selected neighborhood changes
+  useEffect(() => {
+    setEmail("");
+    setStatus("idle");
+    setError(null);
+  }, [neighborhoodName]);
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = email.trim();
+    if (!emailRegex.test(trimmed) || trimmed.length > 255) {
+      setError("Please enter a valid email.");
+      return;
+    }
+    setError(null);
+    setStatus("success");
+  };
+
+  if (status === "success") {
+    return (
+      <div
+        role="status"
+        className="mt-4 rounded-2xl border border-border/70 bg-secondary/60 px-4 py-3 text-[13px] font-medium leading-snug text-primary transition-all duration-500"
+      >
+        <span className="mr-1.5 text-hot">✓</span>
+        Perfect! We will notify you if the real estate climate shifts in this
+        neighborhood.
+      </div>
+    );
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="mt-4 rounded-2xl border border-border/70 bg-secondary/40 p-3.5"
+    >
+      <p className="text-[12.5px] leading-snug tracking-tight text-primary">
+        Sign me up if the weather changes in{" "}
+        <span className="font-semibold">{neighborhoodName}</span>.
+      </p>
+      <div className="mt-2.5 flex items-center gap-2">
+        <input
+          type="email"
+          required
+          maxLength={255}
+          value={email}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (error) setError(null);
+          }}
+          placeholder="you@email.com"
+          aria-label="Email address"
+          className="h-10 flex-1 rounded-full border border-border bg-card px-4 text-[13px] text-primary placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15"
+        />
+        <button
+          type="submit"
+          className="h-10 shrink-0 rounded-full bg-primary px-4 text-[12.5px] font-semibold tracking-tight text-primary-foreground transition-transform hover:scale-[1.02] active:scale-[0.98]"
+        >
+          Notify Me
+        </button>
+      </div>
+      {error && (
+        <p className="mt-1.5 text-[11px] text-destructive">{error}</p>
+      )}
+    </form>
   );
 }
