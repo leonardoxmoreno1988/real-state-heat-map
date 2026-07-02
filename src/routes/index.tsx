@@ -345,10 +345,9 @@ function Index() {
               y="216"
               textAnchor="middle"
               dominantBaseline="central"
-              fontSize="8.5"
-              fontWeight={600}
+              className="park-label"
               fill="var(--park-stroke)"
-              style={{ pointerEvents: "none", letterSpacing: "0.12em" }}
+              style={{ pointerEvents: "none" }}
             >
               CENTRAL
             </text>
@@ -357,10 +356,9 @@ function Index() {
               y="226"
               textAnchor="middle"
               dominantBaseline="central"
-              fontSize="8.5"
-              fontWeight={600}
+              className="park-label"
               fill="var(--park-stroke)"
-              style={{ pointerEvents: "none", letterSpacing: "0.12em" }}
+              style={{ pointerEvents: "none" }}
             >
               PARK
             </text>
