@@ -27,6 +27,7 @@ const NEIGHBORHOODS: Neighborhood[] = [
   {
     id: "harlem",
     name: "Harlem",
+    shortName: "Harlem",
     points: "60,40 240,40 240,140 60,140",
     labelX: 150,
     labelY: 92,
@@ -38,6 +39,7 @@ const NEIGHBORHOODS: Neighborhood[] = [
   {
     id: "uws",
     name: "Upper West Side",
+    shortName: "UWS",
     points: "60,140 150,140 150,300 60,300",
     labelX: 105,
     labelY: 222,
@@ -49,8 +51,9 @@ const NEIGHBORHOODS: Neighborhood[] = [
   {
     id: "ues",
     name: "Upper East Side",
+    shortName: "UES",
     points: "195,140 240,140 240,300 195,300",
-    labelX: 218,
+    labelX: 217,
     labelY: 222,
     base: 5.4,
     dom: 84,
@@ -60,6 +63,7 @@ const NEIGHBORHOODS: Neighborhood[] = [
   {
     id: "midtown",
     name: "Midtown",
+    shortName: "Midtown",
     points: "60,300 240,300 240,400 60,400",
     labelX: 150,
     labelY: 352,
@@ -71,6 +75,7 @@ const NEIGHBORHOODS: Neighborhood[] = [
   {
     id: "chelsea",
     name: "Chelsea",
+    shortName: "Chelsea",
     points: "60,400 150,400 150,510 60,510",
     labelX: 105,
     labelY: 458,
@@ -82,6 +87,7 @@ const NEIGHBORHOODS: Neighborhood[] = [
   {
     id: "gramercy",
     name: "Gramercy",
+    shortName: "Gramercy",
     points: "150,400 240,400 240,510 150,510",
     labelX: 195,
     labelY: 458,
@@ -93,6 +99,7 @@ const NEIGHBORHOODS: Neighborhood[] = [
   {
     id: "soho",
     name: "SoHo",
+    shortName: "SoHo",
     points: "60,510 240,510 240,600 60,600",
     labelX: 150,
     labelY: 558,
@@ -104,6 +111,7 @@ const NEIGHBORHOODS: Neighborhood[] = [
   {
     id: "fidi",
     name: "FiDi",
+    shortName: "FiDi",
     points: "80,600 220,600 200,700 100,700",
     labelX: 150,
     labelY: 650,
