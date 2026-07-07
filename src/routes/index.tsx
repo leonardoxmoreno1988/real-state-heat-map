@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { Building } from "lucide-react";
 import {
   TransformWrapper,
   TransformComponent,
@@ -291,7 +292,7 @@ function Segmented<T extends string>({
 }) {
   const pad = size === "sm" ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm";
   return (
-    <div className="inline-flex rounded-full bg-secondary p-1">
+    <div className="inline-flex rounded-md bg-secondary p-1">
       {options.map((opt) => {
         const active = opt === value;
         return (
@@ -299,7 +300,7 @@ function Segmented<T extends string>({
             key={opt}
             type="button"
             onClick={() => onChange(opt)}
-            className={`${pad} rounded-full font-medium tracking-tight transition-all duration-200 ${
+            className={`${pad} rounded-md font-medium tracking-tight transition-all duration-200 ${
               active
                 ? "bg-primary text-primary-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
