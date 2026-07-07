@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Building } from "lucide-react";
 import {
   TransformWrapper,
@@ -363,10 +363,128 @@ function Index() {
   };
 
   const microVisible = zoom >= ZOOM_THRESHOLD;
-  // Keep micro-labels close to constant on-screen size, with a modest
-  // floor so they scale up when the user zooms in significantly.
-  const microFontSize = Math.max(6.5, 11 / Math.max(zoom, 1));
   const microStrokeWidthBase = 0.7;
+
+  // Measure each sub-path bbox once mounted so we can size labels to fit
+  // and detect collisions between neighboring label rects.
+  const pathRefs = useRef<Record<string, SVGPathElement | null>>({});
+  const [bboxes, setBboxes] = useState<
+    Record<string, { w: number; h: number; cx: number; cy: number }>
+  >({});
+  useLayoutEffect(() => {
+    const next: Record<string, { w: number; h: number; cx: number; cy: number }> = {};
+    for (const [k, el] of Object.entries(pathRefs.current)) {
+      if (!el) continue;
+      try {
+        const b = el.getBBox();
+        next[k] = {
+          w: b.width,
+          h: b.height,
+          cx: b.x + b.width / 2,
+          cy: b.y + b.height / 2,
+        };
+      } catch {
+        /* ignore */
+      }
+    }
+    setBboxes(next);
+  }, []);
+
+  // Compute label layout (font size, wrapped lines, visibility) per sub-path,
+  // considering polygon area, textual length, and pairwise collisions at
+  // the current zoom level. Smaller/lower-priority labels are hidden when
+  // they overlap larger neighbors, and re-appear as zoom shrinks label rects.
+  const labelLayouts = useMemo(() => {
+    type Layout = {
+      key: string;
+      cx: number;
+      cy: number;
+      fontSize: number;
+      lines: string[];
+      width: number;
+      height: number;
+      area: number;
+      visible: boolean;
+    };
+    const z = Math.max(zoom, 1);
+    const items: Layout[] = [];
+    for (const n of NEIGHBORHOODS) {
+      for (const sp of n.subPaths) {
+        const key = subKey(n.id, sp.name);
+        const bb = bboxes[key];
+        const polyW = bb?.w ?? 40;
+        const polyH = bb?.h ?? 40;
+        const area = polyW * polyH;
+        // "Small" polygons get a couple font-size steps smaller (~10px).
+        const isSmall = area < 900;
+        const baseSize = isSmall ? 8.5 : 11;
+        let fontSize = Math.max(5.5, baseSize / z);
+
+        // Try single line; if too wide for polygon, wrap around the middle.
+        const words = sp.name.split(" ");
+        const singleWidth = sp.name.length * fontSize * 0.55;
+        let lines: string[] = [sp.name];
+        const fitBudget = polyW * 0.92;
+        if (words.length > 1 && singleWidth > fitBudget) {
+          const mid = Math.ceil(words.length / 2);
+          lines = [
+            words.slice(0, mid).join(" "),
+            words.slice(mid).join(" "),
+          ];
+        }
+        // If wrapped lines still overflow, nudge font down a touch.
+        const longest = Math.max(...lines.map((l) => l.length));
+        if (longest * fontSize * 0.55 > fitBudget && fontSize > 6) {
+          fontSize = Math.max(
+            5.5,
+            (fitBudget / (longest * 0.55)) as number,
+          );
+        }
+        const width = longest * fontSize * 0.55;
+        const height = lines.length * fontSize * 1.15;
+        items.push({
+          key,
+          cx: sp.cx,
+          cy: sp.cy,
+          fontSize,
+          lines,
+          width,
+          height,
+          area,
+          visible: true,
+        });
+      }
+    }
+    // Greedy collision resolution: larger polygon wins, smaller hides.
+    items.sort((a, b) => b.area - a.area);
+    const placed: Layout[] = [];
+    for (const item of items) {
+      const pad = 1.5;
+      const ax0 = item.cx - item.width / 2 - pad;
+      const ax1 = item.cx + item.width / 2 + pad;
+      const ay0 = item.cy - item.height / 2 - pad;
+      const ay1 = item.cy + item.height / 2 + pad;
+      let collides = false;
+      for (const p of placed) {
+        const bx0 = p.cx - p.width / 2 - pad;
+        const bx1 = p.cx + p.width / 2 + pad;
+        const by0 = p.cy - p.height / 2 - pad;
+        const by1 = p.cy + p.height / 2 + pad;
+        if (ax0 < bx1 && ax1 > bx0 && ay0 < by1 && ay1 > by0) {
+          collides = true;
+          break;
+        }
+      }
+      if (collides) {
+        item.visible = false;
+      } else {
+        placed.push(item);
+      }
+    }
+    const map: Record<string, Layout> = {};
+    for (const it of items) map[it.key] = it;
+    return map;
+  }, [bboxes, zoom]);
 
   return (
     <div className="flex h-[100dvh] flex-col overflow-hidden bg-background text-foreground">
@@ -435,6 +553,9 @@ function Index() {
                       return (
                         <path
                           key={key}
+                          ref={(el) => {
+                            pathRefs.current[key] = el;
+                          }}
                           d={sp.d}
                           fill={THERMAL_FILL[thermal]}
                           stroke={THERMAL_STROKE[thermal]}
@@ -499,27 +620,53 @@ function Index() {
                       {n.shortName}
                     </text>
 
-                    {/* Micro labels (Tier 2) */}
-                    {n.subPaths.map((sp) => (
-                      <text
-                        key={`micro-${sp.name}`}
-                        x={sp.cx}
-                        y={sp.cy}
-                        textAnchor="middle"
-                        dominantBaseline="central"
-                        fill="#183659"
-                        style={{
-                          pointerEvents: "none",
-                          opacity: microVisible ? 1 : 0,
-                          transition: "opacity 250ms ease, font-size 180ms ease",
-                          fontSize: `${microFontSize}px`,
-                          fontWeight: 600,
-                          letterSpacing: "0.01em",
-                        }}
-                      >
-                        {renderWrappedLabel(sp.name, sp.cx, microFontSize)}
-                      </text>
-                    ))}
+                    {/* Micro labels (Tier 2) — collision-managed, per-polygon fit */}
+                    {n.subPaths.map((sp) => {
+                      const key = subKey(n.id, sp.name);
+                      const layout = labelLayouts[key];
+                      if (!layout) {
+                        return (
+                          <text
+                            key={`micro-${sp.name}`}
+                            x={sp.cx}
+                            y={sp.cy}
+                            style={{ opacity: 0, pointerEvents: "none" }}
+                          />
+                        );
+                      }
+                      const { fontSize, lines, visible } = layout;
+                      const lineHeight = fontSize * 1.15;
+                      const startDy = -((lines.length - 1) * lineHeight) / 2;
+                      return (
+                        <text
+                          key={`micro-${sp.name}`}
+                          x={sp.cx}
+                          y={sp.cy}
+                          textAnchor="middle"
+                          dominantBaseline="central"
+                          fill="#183659"
+                          style={{
+                            pointerEvents: "none",
+                            opacity: microVisible && visible ? 1 : 0,
+                            transition:
+                              "opacity 250ms ease, font-size 180ms ease",
+                            fontSize: `${fontSize}px`,
+                            fontWeight: 600,
+                            letterSpacing: "0.01em",
+                          }}
+                        >
+                          {lines.map((line, i) => (
+                            <tspan
+                              key={i}
+                              x={sp.cx}
+                              dy={i === 0 ? startDy : lineHeight}
+                            >
+                              {line}
+                            </tspan>
+                          ))}
+                        </text>
+                      );
+                    })}
                   </g>
                 ))}
 
@@ -602,31 +749,6 @@ function Index() {
   );
 }
 
-/**
- * Renders a micro label as tspans. If the name has multiple words and is
- * long enough that it might clip its polygon, wrap onto two lines around
- * the middle word.
- */
-function renderWrappedLabel(name: string, cx: number, fontSize: number) {
-  const parts = name.split(" ");
-  if (parts.length > 1 && name.length > 9) {
-    const mid = Math.ceil(parts.length / 2);
-    const line1 = parts.slice(0, mid).join(" ");
-    const line2 = parts.slice(mid).join(" ");
-    const lineHeight = fontSize * 1.05;
-    return (
-      <>
-        <tspan x={cx} dy={-lineHeight / 2}>
-          {line1}
-        </tspan>
-        <tspan x={cx} dy={lineHeight}>
-          {line2}
-        </tspan>
-      </>
-    );
-  }
-  return name;
-}
 
 function LegendRow({ color, label }: { color: string; label: string }) {
   return (
