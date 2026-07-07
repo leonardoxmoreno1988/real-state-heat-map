@@ -375,7 +375,7 @@ function Index() {
           <div className="flex items-center gap-2.5">
             <LogoA />
             <span className="text-[17px] font-semibold tracking-tight text-primary">
-              Alta<span className="text-muted-foreground font-normal"> Heatmap</span>
+              Alta<span className="text-muted-foreground font-normal"> Forecast</span>
             </span>
           </div>
           <button
@@ -794,12 +794,10 @@ function BottomSheet({
             <div className="shrink-0 border-t border-border/60 bg-card px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 md:border-t-0 md:px-8 md:pb-7 md:pt-4">
               <button
                 type="button"
-                className="flex w-full items-center justify-center gap-2 rounded-full border border-[#183659] bg-transparent py-3.5 text-sm font-semibold tracking-[0.08em] text-[#183659] transition-transform hover:scale-[1.01] active:scale-[0.99]"
+                className="flex w-full items-center justify-center gap-2 rounded-md border border-[#183659] bg-transparent py-3.5 text-sm font-semibold tracking-[0.08em] text-[#183659] transition-transform hover:scale-[1.01] active:scale-[0.99]"
               >
+                <Building size={16} strokeWidth={2} aria-hidden className="shrink-0" />
                 SEE LISTINGS
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-                  <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
               </button>
             </div>
           </>
@@ -881,11 +879,11 @@ function LeadCapture({ neighborhoodName }: { neighborhoodName: string }) {
           }}
           placeholder="you@email.com"
           aria-label="Email address"
-          className="h-10 flex-1 rounded-full border border-border bg-card px-4 text-[13px] text-primary placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15"
+          className="h-10 flex-1 rounded-md border border-border bg-card px-4 text-[13px] text-primary placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15"
         />
         <button
           type="submit"
-          className="h-10 shrink-0 rounded-full bg-primary px-4 text-[12.5px] font-semibold tracking-tight text-primary-foreground transition-transform hover:scale-[1.02] active:scale-[0.98]"
+          className="h-10 shrink-0 rounded-md bg-primary px-4 text-[12.5px] font-semibold tracking-tight text-primary-foreground transition-transform hover:scale-[1.02] active:scale-[0.98]"
         >
           Notify Me
         </button>
