@@ -292,7 +292,7 @@ function Segmented<T extends string>({
 }) {
   const pad = size === "sm" ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm";
   return (
-    <div className="inline-flex rounded-md bg-secondary p-1">
+    <div className="inline-flex rounded-[4px] bg-secondary p-1">
       {options.map((opt) => {
         const active = opt === value;
         return (
@@ -300,7 +300,7 @@ function Segmented<T extends string>({
             key={opt}
             type="button"
             onClick={() => onChange(opt)}
-            className={`${pad} rounded-md font-medium tracking-tight transition-all duration-200 ${
+            className={`${pad} rounded-[4px] font-medium tracking-tight transition-all duration-200 ${
               active
                 ? "bg-primary text-primary-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
@@ -498,7 +498,7 @@ function Index() {
           </div>
           <button
             type="button"
-            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:bg-secondary hover:text-primary"
+            className="inline-flex items-center gap-1 rounded-[4px] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:bg-secondary hover:text-primary"
             aria-label="Change borough"
           >
             Manhattan
@@ -558,7 +558,8 @@ function Index() {
                           }}
                           d={sp.d}
                           fill={THERMAL_FILL[thermal]}
-                          stroke={THERMAL_STROKE[thermal]}
+                          stroke="#183659"
+                          strokeOpacity={0.2}
                           strokeWidth={
                             isSelected
                               ? 1.8
@@ -916,7 +917,7 @@ function BottomSheet({
             <div className="shrink-0 border-t border-border/60 bg-card px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 md:border-t-0 md:px-8 md:pb-7 md:pt-4">
               <button
                 type="button"
-                className="flex w-full items-center justify-center gap-2 rounded-md border border-[#183659] bg-transparent py-3.5 text-sm font-semibold tracking-[0.08em] text-[#183659] transition-transform hover:scale-[1.01] active:scale-[0.99]"
+                className="flex w-full items-center justify-center gap-2 rounded-[4px] border border-[#183659] bg-transparent py-3.5 text-sm font-semibold tracking-[0.08em] text-[#183659] transition-transform hover:scale-[1.01] active:scale-[0.99]"
               >
                 <Building size={16} strokeWidth={2} aria-hidden className="shrink-0" />
                 SEE LISTINGS
@@ -1001,11 +1002,11 @@ function LeadCapture({ neighborhoodName }: { neighborhoodName: string }) {
           }}
           placeholder="you@email.com"
           aria-label="Email address"
-          className="h-10 flex-1 rounded-md border border-border bg-card px-4 text-[13px] text-primary placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15"
+          className="h-10 flex-1 rounded-[4px] border border-border bg-card px-4 text-[13px] text-primary placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15"
         />
         <button
           type="submit"
-          className="h-10 shrink-0 rounded-md bg-primary px-4 text-[12.5px] font-semibold tracking-tight text-primary-foreground transition-transform hover:scale-[1.02] active:scale-[0.98]"
+          className="h-10 shrink-0 rounded-[4px] bg-primary px-4 text-[12.5px] font-semibold tracking-tight text-primary-foreground transition-transform hover:scale-[1.02] active:scale-[0.98]"
         >
           Notify Me
         </button>
