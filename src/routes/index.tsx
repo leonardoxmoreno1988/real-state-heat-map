@@ -227,6 +227,39 @@ function computeMetrics(n: Neighborhood, type: PropertyType, size: SizeType) {
   return { supply, dom, ppsf, inContract, thermal };
 }
 
+function hashStr(s: string) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+function subMetrics(
+  n: Neighborhood,
+  sp: SubPath,
+  type: PropertyType,
+  size: SizeType,
+) {
+  const h = hashStr(n.id + "::" + sp.name);
+  const jitterSupply = ((h % 34) - 17) / 10; // -1.7..+1.7
+  const jitterPpsf = ((h >> 5) % 500) - 250;
+  const jitterContract = ((h >> 11) % 30) - 15;
+  const derived: Neighborhood = {
+    ...n,
+    id: `${n.id}--${sp.name}`,
+    base: Math.max(1.4, +(n.base + jitterSupply).toFixed(2)),
+    ppsf: Math.max(600, n.ppsf + jitterPpsf),
+    inContract: Math.max(4, n.inContract + jitterContract),
+  };
+  return computeMetrics(derived, type, size);
+}
+
+function subKey(nId: string, spName: string) {
+  return `${nId}::${spName}`;
+}
+
 const THERMAL_FILL: Record<Thermal, string> = {
   hot: "var(--hot-fill)",
   even: "var(--even-fill)",
