@@ -922,7 +922,7 @@ function BottomSheet({
             </div>
 
             <div className="flex-1 overflow-y-auto px-5 pb-3 pt-3 md:px-8 md:pt-4">
-              <div className="flex flex-col gap-2 md:flex-row md:flex-nowrap md:items-center md:gap-2">
+              <div className="flex flex-col gap-2 md:flex-row md:flex-wrap md:items-center md:gap-3">
                 <Segmented
                   size="lg"
                   options={["All", "Condo", "Co-op", "TH"] as const}
