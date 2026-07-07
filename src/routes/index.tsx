@@ -277,7 +277,8 @@ const THERMAL_LABEL: Record<Thermal, string> = {
   cold: "Cold · Buyer's",
 };
 
-const ZOOM_THRESHOLD = 1.8;
+const ZOOM_THRESHOLD = 1.4; // Tier 2 begins — micro labels fade in
+const ZOOM_THRESHOLD_LG = 2.2; // Tier 3 begins — micro labels scale up
 
 function Segmented<T extends string>({
   options,
@@ -288,9 +289,14 @@ function Segmented<T extends string>({
   options: readonly T[];
   value: T;
   onChange: (v: T) => void;
-  size?: "sm" | "md";
+  size?: "sm" | "md" | "lg";
 }) {
-  const pad = size === "sm" ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm";
+  const pad =
+    size === "sm"
+      ? "px-3 py-1.5 text-xs"
+      : size === "lg"
+        ? "px-4 py-2 text-sm"
+        : "px-3.5 py-1.5 text-[13px]";
   return (
     <div className="inline-flex rounded-md bg-secondary p-1">
       {options.map((opt) => {
@@ -420,10 +426,15 @@ function Index() {
         const polyW = bb?.w ?? 40;
         const polyH = bb?.h ?? 40;
         const area = polyW * polyH;
-        // "Small" polygons get a couple font-size steps smaller (~10px).
         const isSmall = area < 900;
-        const baseSize = isSmall ? 8.5 : 11;
-        let fontSize = Math.max(5.5, baseSize / z);
+        // 3-tier target visual pixel size (SVG is inside a scaled wrapper,
+        // so we divide by z to keep on-screen size predictable per tier).
+        // Tier 2 (1.4x–2.2x): compact, crisp. Tier 3 (>2.2x): comfortable read.
+        const tier3 = z >= ZOOM_THRESHOLD_LG;
+        const targetPx = tier3
+          ? (isSmall ? 13 : 15)
+          : (isSmall ? 10 : 11.5);
+        let fontSize = Math.max(5.5, targetPx / z);
 
         // Try single line; if too wide for polygon, wrap around the middle.
         const words = sp.name.split(" ");
@@ -912,13 +923,13 @@ function BottomSheet({
             <div className="flex-1 overflow-y-auto px-5 pb-3 pt-3 md:px-8 md:pt-4">
               <div className="flex flex-wrap items-center gap-2">
                 <Segmented
-                  size="sm"
+                  size="lg"
                   options={["All", "Condo", "Co-op", "TH"] as const}
                   value={localType}
                   onChange={setLocalType}
                 />
                 <Segmented
-                  size="sm"
+                  size="lg"
                   options={["All", "1 Bed", "2 Bed", "3 Bed"] as const}
                   value={localSize}
                   onChange={setLocalSize}
