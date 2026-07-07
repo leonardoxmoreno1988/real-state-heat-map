@@ -90,13 +90,13 @@
   /* Alta thermal tokens */
   --hot: #E11D48;                        /* deep rose / carmine */
   --hot-fill: rgba(225, 29, 72, 0.32);
-  --hot-stroke: #BE123C;
+  --hot-stroke: rgba(225, 29, 72, 0.55); /* softened crimson border */
   --even: oklch(0.78 0.005 260);         /* premium light gray */
   --even-fill: oklch(0.78 0.005 260 / 0.42);
-  --even-stroke: oklch(0.62 0.005 260);
+  --even-stroke: oklch(0.78 0.005 260 / 0.5); /* muted light-gray */
   --cold: oklch(0.82 0.09 220);          /* light azure/cyan */
   --cold-fill: oklch(0.82 0.09 220 / 0.42);
-  --cold-stroke: oklch(0.6 0.11 220);
+  --cold-stroke: oklch(0.78 0.09 220 / 0.6); /* soft azure border */
   --park: oklch(0.82 0.11 145 / 0.55);
   --park-stroke: oklch(0.55 0.12 145);
   --water: oklch(0.96 0.01 220);
