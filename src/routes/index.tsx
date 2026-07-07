@@ -853,16 +853,17 @@ function BottomSheet({
   const thermal = metrics?.thermal ?? "even";
   const badgeBg =
     thermal === "hot"
-      ? "var(--hot-fill)"
+      ? "#FCE7EC"
       : thermal === "cold"
-        ? "var(--cold-fill)"
-        : "var(--even-fill)";
+        ? "#E0F2FB"
+        : "#EEF1F5";
   const badgeColor =
     thermal === "hot"
-      ? "var(--hot-stroke)"
+      ? "#9F1239"
       : thermal === "cold"
-        ? "var(--cold-stroke)"
-        : "var(--even-stroke)";
+        ? "#0369A1"
+        : "#475569";
+
 
   return (
     <>
@@ -921,7 +922,7 @@ function BottomSheet({
             </div>
 
             <div className="flex-1 overflow-y-auto px-5 pb-3 pt-3 md:px-8 md:pt-4">
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-col gap-2 md:flex-row md:flex-wrap md:items-center md:gap-3">
                 <Segmented
                   size="lg"
                   options={["All", "Condo", "Co-op", "TH"] as const}
@@ -935,6 +936,7 @@ function BottomSheet({
                   onChange={setLocalSize}
                 />
               </div>
+
 
               <div className="mt-4 grid grid-cols-2 gap-2.5">
                 <Metric label="Supply" value={`${metrics.supply}`} unit="mo" />
