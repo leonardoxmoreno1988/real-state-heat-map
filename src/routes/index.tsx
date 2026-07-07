@@ -749,31 +749,6 @@ function Index() {
   );
 }
 
-/**
- * Renders a micro label as tspans. If the name has multiple words and is
- * long enough that it might clip its polygon, wrap onto two lines around
- * the middle word.
- */
-function renderWrappedLabel(name: string, cx: number, fontSize: number) {
-  const parts = name.split(" ");
-  if (parts.length > 1 && name.length > 9) {
-    const mid = Math.ceil(parts.length / 2);
-    const line1 = parts.slice(0, mid).join(" ");
-    const line2 = parts.slice(mid).join(" ");
-    const lineHeight = fontSize * 1.05;
-    return (
-      <>
-        <tspan x={cx} dy={-lineHeight / 2}>
-          {line1}
-        </tspan>
-        <tspan x={cx} dy={lineHeight}>
-          {line2}
-        </tspan>
-      </>
-    );
-  }
-  return name;
-}
 
 function LegendRow({ color, label }: { color: string; label: string }) {
   return (
