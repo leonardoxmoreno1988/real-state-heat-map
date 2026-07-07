@@ -1,5 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import {
+  TransformWrapper,
+  TransformComponent,
+} from "react-zoom-pan-pinch";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -9,11 +13,19 @@ type PropertyType = "All" | "Condo" | "Co-op" | "TH";
 type SizeType = "All" | "1 Bed" | "2 Bed" | "3 Bed";
 type Thermal = "hot" | "even" | "cold";
 
+interface SubPath {
+  d: string;
+  name: string;
+  /** approximate centroid for micro-label placement */
+  cx: number;
+  cy: number;
+}
+
 interface Neighborhood {
   id: string;
   name: string;
   shortName: string;
-  paths: string[];
+  subPaths: SubPath[];
   labelX: number;
   labelY: number;
   base: number;
@@ -27,13 +39,13 @@ const NEIGHBORHOODS: Neighborhood[] = [
     id: "harlem",
     name: "Harlem",
     shortName: "Harlem",
-    paths: [
-      "M113.614 132.833L114.204 111.433L169.254 111.243C174.084 117.673 185.214 128.313 190.184 132.833H113.614Z",
-      "M106.224 80.2325C105.574 67.4125 106.494 49.9225 107.044 42.7825L152.904 52.5625C153.294 63.3925 154.044 75.9225 154.504 80.4625L106.234 80.2325H106.224Z",
-      "M153.134 52.5425L106.854 42.6725C106.854 32.6025 109.114 26.1725 110.254 24.0125C111.694 21.7125 116.234 17.7125 122.824 20.1025C128.554 22.1725 133.284 21.8725 135.614 21.3125C136.204 21.1725 136.714 20.8125 137.134 20.3725C144.094 13.3225 150.574 16.2225 153.674 19.2125C154.234 19.7525 154.444 20.5325 154.364 21.2925C153.294 31.6425 153.094 46.1625 153.124 52.5425H153.134Z",
-      "M114.314 111.163C115.314 96.5625 109.704 84.3325 106.564 80.1725L154.534 80.4225C156.574 93.5225 165.084 106.373 169.084 111.163H114.314Z",
-      "M231.194 173.263C217.114 166.383 205.404 152.493 201.534 146.033L201.954 276.603H260.404C259.614 274.003 260.734 270.013 261.394 268.343C262.544 259.273 264.834 234.933 264.834 210.123C264.834 185.313 242.414 175.213 231.204 173.263H231.194Z",
-      "M107.504 141.933C113.794 140.263 114.594 135.253 114.204 132.953L188.894 132.933L201.574 145.613V238.343H163.884V196.513H146.904L112.894 183.903C117.684 168.193 111.294 160.733 107.504 158.973V141.943V141.933Z",
+    subPaths: [
+      { d: "M113.614 132.833L114.204 111.433L169.254 111.243C174.084 117.673 185.214 128.313 190.184 132.833H113.614Z", name: "Hamilton Heights", cx: 150, cy: 122 },
+      { d: "M106.224 80.2325C105.574 67.4125 106.494 49.9225 107.044 42.7825L152.904 52.5625C153.294 63.3925 154.044 75.9225 154.504 80.4625L106.234 80.2325H106.224Z", name: "Inwood", cx: 130, cy: 61 },
+      { d: "M153.134 52.5425L106.854 42.6725C106.854 32.6025 109.114 26.1725 110.254 24.0125C111.694 21.7125 116.234 17.7125 122.824 20.1025C128.554 22.1725 133.284 21.8725 135.614 21.3125C136.204 21.1725 136.714 20.8125 137.134 20.3725C144.094 13.3225 150.574 16.2225 153.674 19.2125C154.234 19.7525 154.444 20.5325 154.364 21.2925C153.294 31.6425 153.094 46.1625 153.124 52.5425H153.134Z", name: "Marble Hill", cx: 130, cy: 32 },
+      { d: "M114.314 111.163C115.314 96.5625 109.704 84.3325 106.564 80.1725L154.534 80.4225C156.574 93.5225 165.084 106.373 169.084 111.163H114.314Z", name: "Washington Heights", cx: 138, cy: 96 },
+      { d: "M231.194 173.263C217.114 166.383 205.404 152.493 201.534 146.033L201.954 276.603H260.404C259.614 274.003 260.734 270.013 261.394 268.343C262.544 259.273 264.834 234.933 264.834 210.123C264.834 185.313 242.414 175.213 231.204 173.263H231.194Z", name: "East Harlem", cx: 232, cy: 225 },
+      { d: "M107.504 141.933C113.794 140.263 114.594 135.253 114.204 132.953L188.894 132.933L201.574 145.613V238.343H163.884V196.513H146.904L112.894 183.903C117.684 168.193 111.294 160.733 107.504 158.973V141.943V141.933Z", name: "Central Harlem", cx: 155, cy: 170 },
     ],
     labelX: 155,
     labelY: 155,
@@ -46,9 +58,9 @@ const NEIGHBORHOODS: Neighborhood[] = [
     id: "uws",
     name: "Upper West Side",
     shortName: "UWS",
-    paths: [
-      "M110.524 219.693C106.164 204.573 110.394 189.533 113.054 183.903L146.984 196.623H163.904V238.473H112.274C112.804 229.723 111.334 222.303 110.524 219.693Z",
-      "M112.344 339.153V238.543H163.554V339.153H112.344Z",
+    subPaths: [
+      { d: "M110.524 219.693C106.164 204.573 110.394 189.533 113.054 183.903L146.984 196.623H163.904V238.473H112.274C112.804 229.723 111.334 222.303 110.524 219.693Z", name: "Morningside Heights", cx: 137, cy: 213 },
+      { d: "M112.344 339.153V238.543H163.554V339.153H112.344Z", name: "Lincoln Square", cx: 137, cy: 288 },
     ],
     labelX: 137,
     labelY: 285,
@@ -61,9 +73,9 @@ const NEIGHBORHOODS: Neighborhood[] = [
     id: "ues",
     name: "Upper East Side",
     shortName: "UES",
-    paths: [
-      "M220.164 318.212V276.703L260.494 276.793C266.524 287.093 269.464 284.063 275.634 288.193C280.564 291.503 280.694 302.062 280.144 306.932L276.124 313.113V318.193H220.174L220.164 318.212Z",
-      "M220.294 318.213V276.663H201.624V339.103H267.564L275.654 319.633V318.213H220.294Z",
+    subPaths: [
+      { d: "M220.164 318.212V276.703L260.494 276.793C266.524 287.093 269.464 284.063 275.634 288.193C280.564 291.503 280.694 302.062 280.144 306.932L276.124 313.113V318.193H220.174L220.164 318.212Z", name: "Yorkville", cx: 250, cy: 297 },
+      { d: "M220.294 318.213V276.663H201.624V339.103H267.564L275.654 319.633V318.213H220.294Z", name: "Lenox Hill", cx: 238, cy: 328 },
     ],
     labelX: 240,
     labelY: 305,
@@ -76,13 +88,13 @@ const NEIGHBORHOODS: Neighborhood[] = [
     id: "midtown",
     name: "Midtown",
     shortName: "Midtown",
-    paths: [
-      "M222.704 413.703H248.874V375.133H222.704V413.703Z",
-      "M222.444 448.203H182.494V386.983H164.514V418.223H152.094V375.233H222.454V448.203H222.444Z",
-      "M164.494 418.173H151.904V429.833H182.434V386.903H164.494V418.173Z",
-      "M112.504 418.283V375.403H151.984V418.283H112.504Z",
-      "M112.424 375.523V339.253H163.794V375.523H112.424Z",
-      "M201.624 339.103V375.183H267.664V339.163L267.694 339.103H201.624Z",
+    subPaths: [
+      { d: "M222.704 413.703H248.874V375.133H222.704V413.703Z", name: "Turtle Bay", cx: 236, cy: 394 },
+      { d: "M222.444 448.203H182.494V386.983H164.514V418.223H152.094V375.233H222.454V448.203H222.444Z", name: "Midtown East", cx: 200, cy: 410 },
+      { d: "M164.494 418.173H151.904V429.833H182.434V386.903H164.494V418.173Z", name: "Murray Hill", cx: 172, cy: 408 },
+      { d: "M112.504 418.283V375.403H151.984V418.283H112.504Z", name: "Midtown West", cx: 132, cy: 396 },
+      { d: "M112.424 375.523V339.253H163.794V375.523H112.424Z", name: "Hell's Kitchen", cx: 138, cy: 357 },
+      { d: "M201.624 339.103V375.183H267.664V339.163L267.694 339.103H201.624Z", name: "Midtown Center", cx: 234, cy: 357 },
     ],
     labelX: 190,
     labelY: 395,
@@ -95,10 +107,10 @@ const NEIGHBORHOODS: Neighborhood[] = [
     id: "chelsea",
     name: "Chelsea",
     shortName: "Chelsea",
-    paths: [
-      "M120.224 479.943C111.774 478.713 110.234 459.343 110.524 449.803H152.094V429.753H182.424V500.413H126.914L120.234 479.943H120.224Z",
-      "M142.824 541.313L127.024 500.483H172.464V541.313H142.824Z",
-      "M172.464 500.483L222.464 500.583L224.404 506.743L226.244 539.853H182.224L172.464 541.313V500.483Z",
+    subPaths: [
+      { d: "M120.224 479.943C111.774 478.713 110.234 459.343 110.524 449.803H152.094V429.753H182.424V500.413H126.914L120.234 479.943H120.224Z", name: "Chelsea", cx: 145, cy: 465 },
+      { d: "M142.824 541.313L127.024 500.483H172.464V541.313H142.824Z", name: "Meatpacking", cx: 152, cy: 520 },
+      { d: "M172.464 500.483L222.464 500.583L224.404 506.743L226.244 539.853H182.224L172.464 541.313V500.483Z", name: "West Village", cx: 198, cy: 520 },
     ],
     labelX: 165,
     labelY: 480,
@@ -111,17 +123,17 @@ const NEIGHBORHOODS: Neighborhood[] = [
     id: "gramercy",
     name: "Gramercy",
     shortName: "Gramercy",
-    paths: [
-      "M263.564 397.523L267.833 375.243H249.073V397.523H263.564Z",
-      "M263.654 397.273H249.064V418.273H259.344L263.654 397.273Z",
-      "M259.264 418.393H249.044V449.443H256.124C253.614 440.343 257.164 424.953 259.254 418.393H259.264Z",
-      "M268.474 475.653H249.434V449.563H256.174C259.404 461.143 265.654 471.123 268.724 475.163C268.874 475.373 268.724 475.653 268.474 475.653Z",
-      "M222.464 500.583H182.134V447.963H222.464V500.583Z",
-      "M248.924 450.003V413.673H222.704V450.003H248.924Z",
-      "M110.164 449.903C108.194 426.783 110.984 419.183 112.634 418.263H151.964V449.903H110.164Z",
-      "M249.464 475.943H222.444V449.483H249.464V475.943Z",
-      "M249.254 475.593H268.764C268.764 477.133 273.684 482.713 280.494 486.193C289.874 490.983 292.354 497.823 292.414 500.643H249.254V475.593Z",
-      "M222.444 475.943H249.464L249.254 500.643L222.464 500.583L222.444 475.943Z",
+    subPaths: [
+      { d: "M263.564 397.523L267.833 375.243H249.073V397.523H263.564Z", name: "Sutton Place", cx: 258, cy: 386 },
+      { d: "M263.654 397.273H249.064V418.273H259.344L263.654 397.273Z", name: "Beekman", cx: 256, cy: 408 },
+      { d: "M259.264 418.393H249.044V449.443H256.124C253.614 440.343 257.164 424.953 259.254 418.393H259.264Z", name: "Tudor City", cx: 253, cy: 434 },
+      { d: "M268.474 475.653H249.434V449.563H256.174C259.404 461.143 265.654 471.123 268.724 475.163C268.874 475.373 268.724 475.653 268.474 475.653Z", name: "Kips Bay", cx: 259, cy: 462 },
+      { d: "M222.464 500.583H182.134V447.963H222.464V500.583Z", name: "Gramercy", cx: 202, cy: 474 },
+      { d: "M248.924 450.003V413.673H222.704V450.003H248.924Z", name: "Rose Hill", cx: 236, cy: 431 },
+      { d: "M110.164 449.903C108.194 426.783 110.984 419.183 112.634 418.263H151.964V449.903H110.164Z", name: "Flatiron", cx: 132, cy: 435 },
+      { d: "M249.464 475.943H222.444V449.483H249.464V475.943Z", name: "Stuyvesant", cx: 236, cy: 462 },
+      { d: "M249.254 475.593H268.764C268.764 477.133 273.684 482.713 280.494 486.193C289.874 490.983 292.354 497.823 292.414 500.643H249.254V475.593Z", name: "Peter Cooper", cx: 271, cy: 488 },
+      { d: "M222.444 475.943H249.464L249.254 500.643L222.464 500.583L222.444 475.943Z", name: "Union Square", cx: 236, cy: 488 },
     ],
     labelX: 245,
     labelY: 450,
@@ -134,13 +146,13 @@ const NEIGHBORHOODS: Neighborhood[] = [
     id: "soho",
     name: "SoHo",
     shortName: "SoHo",
-    paths: [
-      "M249.364 590.113L227.164 579.873V540.773H242.074L249.364 590.103V590.113Z",
-      "M227.114 562.963H210.954V539.853H226.244V540.803H227.114V562.963Z",
-      "M151.934 561.343L142.974 541.613L172.654 541.423L182.224 539.843H210.934V562.893H200.074V570.683L162.034 561.343H151.934Z",
-      "M222.194 500.633H269.134V540.763H226.364L224.404 506.743L222.194 500.633Z",
-      "M269.034 540.933V500.603H292.424C293.034 507.633 296.824 525.553 307.084 540.933H269.024H269.034Z",
-      "M200.074 562.903L227.114 562.963L227.364 590.903L199.944 590.723L200.074 562.903Z",
+    subPaths: [
+      { d: "M249.364 590.113L227.164 579.873V540.773H242.074L249.364 590.103V590.113Z", name: "East Village", cx: 238, cy: 565 },
+      { d: "M227.114 562.963H210.954V539.853H226.244V540.803H227.114V562.963Z", name: "Bowery", cx: 219, cy: 551 },
+      { d: "M151.934 561.343L142.974 541.613L172.654 541.423L182.224 539.843H210.934V562.893H200.074V570.683L162.034 561.343H151.934Z", name: "NoHo", cx: 178, cy: 553 },
+      { d: "M222.194 500.633H269.134V540.763H226.364L224.404 506.743L222.194 500.633Z", name: "Nolita", cx: 246, cy: 520 },
+      { d: "M269.034 540.933V500.603H292.424C293.034 507.633 296.824 525.553 307.084 540.933H269.024H269.034Z", name: "Little Italy", cx: 285, cy: 521 },
+      { d: "M200.074 562.903L227.114 562.963L227.364 590.903L199.944 590.723L200.074 562.903Z", name: "SoHo", cx: 214, cy: 577 },
     ],
     labelX: 220,
     labelY: 545,
@@ -153,14 +165,14 @@ const NEIGHBORHOODS: Neighborhood[] = [
     id: "fidi",
     name: "FiDi",
     shortName: "FiDi",
-    paths: [
-      "M265.434 597.773L249.334 590.023L241.984 540.973H306.944C314.314 557.413 306.664 568.923 301.914 572.633L265.434 597.773Z",
-      "M173.164 608.783L151.954 561.463L162.114 561.253L199.944 570.613V590.723L203.664 608.783H173.164Z",
-      "M227.364 609.713H203.624L199.994 590.893H227.354V609.713H227.364Z",
-      "M245.044 618.333L227.534 609.753V580.053L265.384 598.053C257.914 604.263 248.714 614.163 245.044 618.333Z",
-      "M188.794 644.083L173.264 608.853L203.414 608.743L203.614 609.483H208.054L206.494 637.853L188.794 644.083Z",
-      "M223.924 648.793C212.854 649.583 207.634 641.823 206.414 637.833L208.144 609.733H227.454L244.944 618.643C239.354 633.213 228.604 644.813 223.924 648.803V648.793Z",
-      "M224.024 649.023C208.494 666.293 194.184 652.863 188.974 643.993L206.574 637.783C209.854 647.653 219.574 649.393 224.024 649.023Z",
+    subPaths: [
+      { d: "M265.434 597.773L249.334 590.023L241.984 540.973H306.944C314.314 557.413 306.664 568.923 301.914 572.633L265.434 597.773Z", name: "Lower East Side", cx: 278, cy: 570 },
+      { d: "M173.164 608.783L151.954 561.463L162.114 561.253L199.944 570.613V590.723L203.664 608.783H173.164Z", name: "Tribeca", cx: 180, cy: 587 },
+      { d: "M227.364 609.713H203.624L199.994 590.893H227.354V609.713H227.364Z", name: "Chinatown", cx: 214, cy: 600 },
+      { d: "M245.044 618.333L227.534 609.753V580.053L265.384 598.053C257.914 604.263 248.714 614.163 245.044 618.333Z", name: "Two Bridges", cx: 246, cy: 600 },
+      { d: "M188.794 644.083L173.264 608.853L203.414 608.743L203.614 609.483H208.054L206.494 637.853L188.794 644.083Z", name: "Battery Park City", cx: 191, cy: 626 },
+      { d: "M223.924 648.793C212.854 649.583 207.634 641.823 206.414 637.833L208.144 609.733H227.454L244.944 618.643C239.354 633.213 228.604 644.813 223.924 648.803V648.793Z", name: "Civic Center", cx: 224, cy: 628 },
+      { d: "M224.024 649.023C208.494 666.293 194.184 652.863 188.974 643.993L206.574 637.783C209.854 647.653 219.574 649.393 224.024 649.023Z", name: "Financial District", cx: 208, cy: 652 },
     ],
     labelX: 215,
     labelY: 615,
@@ -231,6 +243,8 @@ const THERMAL_LABEL: Record<Thermal, string> = {
   cold: "Cold · Buyer's",
 };
 
+const ZOOM_THRESHOLD = 1.8;
+
 function Segmented<T extends string>({
   options,
   value,
@@ -273,6 +287,12 @@ function Index() {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [localType, setLocalType] = useState<PropertyType>("All");
   const [localSize, setLocalSize] = useState<SizeType>("All");
+  const [zoom, setZoom] = useState(1);
+  const [tooltip, setTooltip] = useState<{
+    x: number;
+    y: number;
+    label: string;
+  } | null>(null);
 
   const selected = NEIGHBORHOODS.find((n) => n.id === selectedId) ?? null;
 
@@ -295,6 +315,8 @@ function Index() {
     setLocalType(globalType);
     setLocalSize(globalSize);
   };
+
+  const microVisible = zoom >= ZOOM_THRESHOLD;
 
   return (
     <div className="flex h-[100dvh] flex-col overflow-hidden bg-background text-foreground">
@@ -333,93 +355,173 @@ function Index() {
       </header>
 
       <main className="relative flex-1 overflow-hidden bg-[var(--water)]">
-        <div className="relative mx-auto flex h-full max-w-3xl items-center justify-center px-4 py-3">
-          <svg
-            viewBox="0 0 383 674"
-            preserveAspectRatio="xMidYMid meet"
-            className="mx-auto h-full max-h-full w-auto max-w-full drop-shadow-[0_20px_40px_rgba(15,23,42,0.06)]"
-            role="img"
-            aria-label="Manhattan neighborhoods heatmap"
+        <TransformWrapper
+          initialScale={1}
+          minScale={1}
+          maxScale={5}
+          wheel={{ step: 0.15 }}
+          doubleClick={{ mode: "toggle", step: 1.6 }}
+          pinch={{ step: 8 }}
+          panning={{ velocityDisabled: true }}
+          onTransform={(ref) => setZoom(ref.state.scale)}
+          onZoom={(ref) => setZoom(ref.state.scale)}
+        >
+          <TransformComponent
+            wrapperStyle={{ width: "100%", height: "100%" }}
+            contentStyle={{ width: "100%", height: "100%" }}
           >
-            {polygonState.map(({ n, thermal, isSelected }) => (
-              <g
-                key={n.id}
-                onClick={() => handleSelect(n.id)}
-                onMouseEnter={() => setHoveredId(n.id)}
-                onMouseLeave={() => setHoveredId(null)}
-                style={{
-                  cursor: "pointer",
-                  transformOrigin: `${n.labelX}px ${n.labelY}px`,
-                  transform: isSelected ? "scale(1.015)" : "scale(1)",
-                  transition:
-                    "transform 300ms cubic-bezier(0.22, 1, 0.36, 1), opacity 300ms, filter 200ms",
-                  opacity: selectedId && !isSelected ? 0.55 : 1,
-                  filter:
-                    hoveredId === n.id && !isSelected
-                      ? "brightness(1.08)"
-                      : "none",
-                }}
+            <div className="relative mx-auto flex h-full w-full max-w-3xl items-center justify-center px-4 py-3">
+              <svg
+                viewBox="0 0 383 674"
+                preserveAspectRatio="xMidYMid meet"
+                className="mx-auto h-full max-h-full w-auto max-w-full drop-shadow-[0_20px_40px_rgba(15,23,42,0.06)]"
+                role="img"
+                aria-label="Manhattan neighborhoods heatmap"
               >
-                {n.paths.map((d, i) => (
-                  <path
-                    key={i}
-                    d={d}
-                    fill={THERMAL_FILL[thermal]}
-                    stroke={THERMAL_STROKE[thermal]}
-                    strokeWidth={
-                      isSelected ? 1.6 : hoveredId === n.id ? 1.2 : 0.7
-                    }
-                    strokeLinejoin="round"
-                    style={{ transition: "fill 400ms ease, stroke-width 200ms" }}
-                  />
+                {polygonState.map(({ n, thermal, isSelected }) => (
+                  <g
+                    key={n.id}
+                    style={{
+                      transformOrigin: `${n.labelX}px ${n.labelY}px`,
+                      transform: isSelected ? "scale(1.015)" : "scale(1)",
+                      transition:
+                        "transform 300ms cubic-bezier(0.22, 1, 0.36, 1), opacity 300ms, filter 200ms",
+                      opacity: selectedId && !isSelected ? 0.55 : 1,
+                      filter:
+                        hoveredId === n.id && !isSelected
+                          ? "brightness(1.08)"
+                          : "none",
+                    }}
+                  >
+                    {n.subPaths.map((sp, i) => (
+                      <path
+                        key={i}
+                        d={sp.d}
+                        fill={THERMAL_FILL[thermal]}
+                        stroke={THERMAL_STROKE[thermal]}
+                        strokeWidth={
+                          isSelected ? 1.6 : hoveredId === n.id ? 1.2 : 0.7
+                        }
+                        strokeLinejoin="round"
+                        vectorEffect="non-scaling-stroke"
+                        style={{
+                          cursor: "pointer",
+                          transition: "fill 400ms ease, stroke-width 200ms",
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSelect(n.id);
+                        }}
+                        onMouseEnter={() => setHoveredId(n.id)}
+                        onMouseLeave={() => {
+                          setHoveredId(null);
+                          setTooltip(null);
+                        }}
+                        onMouseMove={(e) =>
+                          setTooltip({
+                            x: e.clientX,
+                            y: e.clientY,
+                            label: sp.name,
+                          })
+                        }
+                        onTouchStart={() => {
+                          setHoveredId(n.id);
+                        }}
+                      >
+                        <title>{sp.name}</title>
+                      </path>
+                    ))}
+
+                    {/* Macro label (Tier 1) */}
+                    <text
+                      x={n.labelX}
+                      y={n.labelY}
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      className="neighborhood-label"
+                      letterSpacing="0.06em"
+                      fill="var(--primary)"
+                      style={{
+                        pointerEvents: "none",
+                        opacity: microVisible ? 0 : 1,
+                        transition: "opacity 250ms ease",
+                      }}
+                    >
+                      {n.shortName}
+                    </text>
+
+                    {/* Micro labels (Tier 2) */}
+                    {n.subPaths.map((sp, i) => (
+                      <text
+                        key={`micro-${i}`}
+                        x={sp.cx}
+                        y={sp.cy}
+                        textAnchor="middle"
+                        dominantBaseline="central"
+                        fill="var(--primary)"
+                        style={{
+                          pointerEvents: "none",
+                          opacity: microVisible ? 1 : 0,
+                          transition: "opacity 250ms ease",
+                          fontSize: `${7 / Math.max(zoom, 1)}px`,
+                          fontWeight: 600,
+                          letterSpacing: "0.02em",
+                        }}
+                      >
+                        {sp.name}
+                      </text>
+                    ))}
+                  </g>
                 ))}
+
+                {/* Central Park */}
+                <path
+                  d={CENTRAL_PARK_PATH}
+                  fill="var(--park)"
+                  stroke="var(--park-stroke)"
+                  strokeWidth="0.8"
+                  vectorEffect="non-scaling-stroke"
+                  style={{ pointerEvents: "none" }}
+                />
                 <text
-                  x={n.labelX}
-                  y={n.labelY}
+                  x="182.5"
+                  y="300"
                   textAnchor="middle"
                   dominantBaseline="central"
-                  className="neighborhood-label"
-                  letterSpacing="0.06em"
-                  fill="var(--primary)"
+                  className="park-label"
+                  fill="var(--park-stroke)"
                   style={{ pointerEvents: "none" }}
                 >
-                  {n.shortName}
+                  CENTRAL
                 </text>
-              </g>
-            ))}
+                <text
+                  x="182.5"
+                  y="312"
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  className="park-label"
+                  fill="var(--park-stroke)"
+                  style={{ pointerEvents: "none" }}
+                >
+                  PARK
+                </text>
+              </svg>
+            </div>
+          </TransformComponent>
+        </TransformWrapper>
 
-            {/* Central Park */}
-            <path
-              d={CENTRAL_PARK_PATH}
-              fill="var(--park)"
-              stroke="var(--park-stroke)"
-              strokeWidth="0.8"
-              style={{ pointerEvents: "none" }}
-            />
-            <text
-              x="182.5"
-              y="300"
-              textAnchor="middle"
-              dominantBaseline="central"
-              className="park-label"
-              fill="var(--park-stroke)"
-              style={{ pointerEvents: "none" }}
-            >
-              CENTRAL
-            </text>
-            <text
-              x="182.5"
-              y="312"
-              textAnchor="middle"
-              dominantBaseline="central"
-              className="park-label"
-              fill="var(--park-stroke)"
-              style={{ pointerEvents: "none" }}
-            >
-              PARK
-            </text>
-          </svg>
-        </div>
+        {/* Tooltip */}
+        {tooltip && (
+          <div
+            className="pointer-events-none fixed z-20 rounded-md bg-primary px-2.5 py-1 text-[11px] font-semibold tracking-tight text-primary-foreground shadow-lg"
+            style={{
+              left: tooltip.x + 12,
+              top: tooltip.y + 12,
+            }}
+          >
+            {tooltip.label}
+          </div>
+        )}
 
         <div className="pointer-events-none absolute bottom-4 left-4 z-10 flex flex-col gap-1.5 rounded-none border border-border/60 bg-card/85 px-3 py-2.5 text-[11px] shadow-none backdrop-blur-md">
           <LegendRow color="var(--hot)" label="Hot · Seller's" />
