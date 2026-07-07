@@ -327,6 +327,11 @@ function Index() {
     y: number;
     label: string;
   } | null>(null);
+  // Drag vs click discrimination: track pointer-down origin and suppress
+  // the synthetic click if the pointer moved past the threshold (pan).
+  const pointerDownRef = useRef<{ x: number; y: number } | null>(null);
+  const suppressClickRef = useRef(false);
+  const DRAG_THRESHOLD = 4;
 
   const selection = useMemo(() => {
     if (!selectedKey) return null;
