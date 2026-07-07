@@ -674,6 +674,7 @@ function BottomSheet({
   open,
   onClose,
   neighborhood,
+  displayName,
   metrics,
   localType,
   localSize,
@@ -683,6 +684,7 @@ function BottomSheet({
   open: boolean;
   onClose: () => void;
   neighborhood: Neighborhood | null;
+  displayName: string | null;
   metrics: ReturnType<typeof computeMetrics> | null;
   localType: PropertyType;
   localSize: SizeType;
