@@ -563,8 +563,8 @@ function Index() {
                           }}
                           d={sp.d}
                           fill={THERMAL_FILL[thermal]}
-                          stroke="#183659"
-                          strokeOpacity={0.2}
+                          stroke={THERMAL_STROKE[thermal]}
+                          strokeOpacity={isSelected ? 1 : isHovered ? 0.9 : 0.75}
                           strokeWidth={
                             isSelected
                               ? 1.8
@@ -577,7 +577,7 @@ function Index() {
                           style={{
                             cursor: "pointer",
                             transition:
-                              "fill 400ms ease, stroke-width 180ms ease, opacity 250ms ease, filter 180ms ease",
+                              "fill 400ms ease, stroke 300ms ease, stroke-width 180ms ease, opacity 250ms ease, filter 180ms ease",
                             opacity:
                               selectedKey && !isSelected ? 0.5 : 1,
                             filter:
@@ -585,8 +585,27 @@ function Index() {
                                 ? "brightness(1.08)"
                                 : "none",
                           }}
+                          onPointerDown={(e) => {
+                            pointerDownRef.current = { x: e.clientX, y: e.clientY };
+                            suppressClickRef.current = false;
+                          }}
+                          onPointerMove={(e) => {
+                            const p = pointerDownRef.current;
+                            if (!p) return;
+                            const dx = e.clientX - p.x;
+                            const dy = e.clientY - p.y;
+                            if (dx * dx + dy * dy > DRAG_THRESHOLD * DRAG_THRESHOLD) {
+                              suppressClickRef.current = true;
+                            }
+                          }}
                           onClick={(e) => {
                             e.stopPropagation();
+                            if (suppressClickRef.current) {
+                              suppressClickRef.current = false;
+                              pointerDownRef.current = null;
+                              return;
+                            }
+                            pointerDownRef.current = null;
                             handleSelect(n.id, sp.name);
                           }}
                           onMouseEnter={() => setHoveredKey(key)}
