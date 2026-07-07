@@ -277,7 +277,8 @@ const THERMAL_LABEL: Record<Thermal, string> = {
   cold: "Cold · Buyer's",
 };
 
-const ZOOM_THRESHOLD = 1.8;
+const ZOOM_THRESHOLD = 1.4; // Tier 2 begins — micro labels fade in
+const ZOOM_THRESHOLD_LG = 2.2; // Tier 3 begins — micro labels scale up
 
 function Segmented<T extends string>({
   options,
@@ -288,9 +289,14 @@ function Segmented<T extends string>({
   options: readonly T[];
   value: T;
   onChange: (v: T) => void;
-  size?: "sm" | "md";
+  size?: "sm" | "md" | "lg";
 }) {
-  const pad = size === "sm" ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm";
+  const pad =
+    size === "sm"
+      ? "px-3 py-1.5 text-xs"
+      : size === "lg"
+        ? "px-4 py-2 text-sm"
+        : "px-3.5 py-1.5 text-[13px]";
   return (
     <div className="inline-flex rounded-md bg-secondary p-1">
       {options.map((opt) => {
