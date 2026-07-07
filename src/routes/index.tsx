@@ -967,7 +967,7 @@ function BottomSheet({
 
 function Metric({ label, value, unit }: { label: string; value: string; unit?: string }) {
   return (
-    <div className="flex flex-col justify-between rounded-2xl bg-secondary/70 p-3.5">
+    <div className="flex flex-col justify-between rounded-md bg-secondary/70 p-3.5">
       <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
         {label}
       </span>
