@@ -285,11 +285,13 @@ function Segmented<T extends string>({
   value,
   onChange,
   size = "md",
+  fullWidth = false,
 }: {
   options: readonly T[];
   value: T;
   onChange: (v: T) => void;
   size?: "sm" | "md" | "lg";
+  fullWidth?: boolean;
 }) {
   const pad =
     size === "sm"
@@ -298,7 +300,8 @@ function Segmented<T extends string>({
         ? "px-4 py-2 text-sm"
         : "px-3.5 py-1.5 text-[13px]";
   return (
-    <div className="inline-flex rounded-md bg-secondary p-1">
+    <div className={`${fullWidth ? "flex w-full" : "inline-flex"} rounded-md bg-secondary p-1`}>
+
       {options.map((opt) => {
         const active = opt === value;
         return (
@@ -922,20 +925,23 @@ function BottomSheet({
             </div>
 
             <div className="flex-1 overflow-y-auto px-5 pb-3 pt-3 md:px-8 md:pt-4">
-              <div className="flex flex-col gap-2 md:flex-row md:flex-wrap md:items-center md:gap-3">
+              <div className="flex flex-col gap-2">
                 <Segmented
                   size="lg"
+                  fullWidth
                   options={["All", "Condo", "Co-op", "TH"] as const}
                   value={localType}
                   onChange={setLocalType}
                 />
                 <Segmented
                   size="lg"
+                  fullWidth
                   options={["All", "1 Bed", "2 Bed", "3 Bed"] as const}
                   value={localSize}
                   onChange={setLocalSize}
                 />
               </div>
+
 
 
               <div className="mt-4 grid grid-cols-2 gap-2.5">
