@@ -733,8 +733,11 @@ function BottomSheet({
             <div className="flex shrink-0 items-start justify-between gap-3 px-5 pt-3 md:px-8 md:pt-7">
               <div>
                 <h2 className="text-2xl font-semibold tracking-tight text-primary">
-                  {neighborhood.name}
+                  {displayName ?? neighborhood.name}
                 </h2>
+                <p className="mt-0.5 text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                  {neighborhood.name}
+                </p>
                 <span
                   className="mt-1.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium"
                   style={{ backgroundColor: badgeBg, color: badgeColor }}
