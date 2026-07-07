@@ -575,7 +575,7 @@ function Index() {
                           d={sp.d}
                           fill={THERMAL_FILL[thermal]}
                           stroke={THERMAL_STROKE[thermal]}
-                          strokeOpacity={isSelected ? 1 : isHovered ? 0.9 : 0.75}
+                          strokeOpacity={1}
                           strokeWidth={
                             isSelected
                               ? 1.8
