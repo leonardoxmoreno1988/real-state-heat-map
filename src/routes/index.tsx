@@ -787,7 +787,7 @@ function BottomSheet({
                 <Metric label="In Contract" value={`${metrics.inContract}`} />
               </div>
 
-              <LeadCapture neighborhoodName={neighborhood.name} />
+              <LeadCapture neighborhoodName={displayName ?? neighborhood.name} />
             </div>
 
             <div className="shrink-0 border-t border-border/60 bg-card px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 md:border-t-0 md:px-8 md:pb-7 md:pt-4">
