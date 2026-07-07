@@ -227,6 +227,39 @@ function computeMetrics(n: Neighborhood, type: PropertyType, size: SizeType) {
   return { supply, dom, ppsf, inContract, thermal };
 }
 
+function hashStr(s: string) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+function subMetrics(
+  n: Neighborhood,
+  sp: SubPath,
+  type: PropertyType,
+  size: SizeType,
+) {
+  const h = hashStr(n.id + "::" + sp.name);
+  const jitterSupply = ((h % 34) - 17) / 10; // -1.7..+1.7
+  const jitterPpsf = ((h >> 5) % 500) - 250;
+  const jitterContract = ((h >> 11) % 30) - 15;
+  const derived: Neighborhood = {
+    ...n,
+    id: `${n.id}--${sp.name}`,
+    base: Math.max(1.4, +(n.base + jitterSupply).toFixed(2)),
+    ppsf: Math.max(600, n.ppsf + jitterPpsf),
+    inContract: Math.max(4, n.inContract + jitterContract),
+  };
+  return computeMetrics(derived, type, size);
+}
+
+function subKey(nId: string, spName: string) {
+  return `${nId}::${spName}`;
+}
+
 const THERMAL_FILL: Record<Thermal, string> = {
   hot: "var(--hot-fill)",
   even: "var(--even-fill)",
@@ -283,8 +316,8 @@ function Segmented<T extends string>({
 function Index() {
   const [globalType, setGlobalType] = useState<PropertyType>("All");
   const [globalSize, setGlobalSize] = useState<SizeType>("All");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [hoveredKey, setHoveredKey] = useState<string | null>(null);
   const [localType, setLocalType] = useState<PropertyType>("All");
   const [localSize, setLocalSize] = useState<SizeType>("All");
   const [zoom, setZoom] = useState(1);
@@ -294,29 +327,45 @@ function Index() {
     label: string;
   } | null>(null);
 
-  const selected = NEIGHBORHOODS.find((n) => n.id === selectedId) ?? null;
+  const selection = useMemo(() => {
+    if (!selectedKey) return null;
+    const [nId, spName] = selectedKey.split("::");
+    const n = NEIGHBORHOODS.find((x) => x.id === nId);
+    if (!n) return null;
+    const sp = n.subPaths.find((s) => s.name === spName);
+    if (!sp) return null;
+    return { n, sp };
+  }, [selectedKey]);
 
   const polygonState = useMemo(() => {
     return NEIGHBORHOODS.map((n) => {
-      const isSelected = n.id === selectedId;
-      const t = isSelected ? localType : globalType;
-      const s = isSelected ? localSize : globalSize;
-      const m = computeMetrics(n, t, s);
-      return { n, ...m, isSelected };
+      const subStates = n.subPaths.map((sp) => {
+        const key = subKey(n.id, sp.name);
+        const isSelected = key === selectedKey;
+        const t = isSelected ? localType : globalType;
+        const s = isSelected ? localSize : globalSize;
+        const m = subMetrics(n, sp, t, s);
+        return { sp, key, isSelected, ...m };
+      });
+      return { n, subStates };
     });
-  }, [globalType, globalSize, selectedId, localType, localSize]);
+  }, [globalType, globalSize, selectedKey, localType, localSize]);
 
-  const selectedMetrics = selected
-    ? computeMetrics(selected, localType, localSize)
+  const selectedMetrics = selection
+    ? subMetrics(selection.n, selection.sp, localType, localSize)
     : null;
 
-  const handleSelect = (id: string) => {
-    setSelectedId(id);
+  const handleSelect = (nId: string, spName: string) => {
+    setSelectedKey(subKey(nId, spName));
     setLocalType(globalType);
     setLocalSize(globalSize);
   };
 
   const microVisible = zoom >= ZOOM_THRESHOLD;
+  // Keep micro-labels close to constant on-screen size, with a modest
+  // floor so they scale up when the user zooms in significantly.
+  const microFontSize = Math.max(6.5, 11 / Math.max(zoom, 1));
+  const microStrokeWidthBase = 0.7;
 
   return (
     <div className="flex h-[100dvh] flex-col overflow-hidden bg-background text-foreground">
@@ -378,59 +427,58 @@ function Index() {
                 role="img"
                 aria-label="Manhattan neighborhoods heatmap"
               >
-                {polygonState.map(({ n, thermal, isSelected }) => (
-                  <g
-                    key={n.id}
-                    style={{
-                      transformOrigin: `${n.labelX}px ${n.labelY}px`,
-                      transform: isSelected ? "scale(1.015)" : "scale(1)",
-                      transition:
-                        "transform 300ms cubic-bezier(0.22, 1, 0.36, 1), opacity 300ms, filter 200ms",
-                      opacity: selectedId && !isSelected ? 0.55 : 1,
-                      filter:
-                        hoveredId === n.id && !isSelected
-                          ? "brightness(1.08)"
-                          : "none",
-                    }}
-                  >
-                    {n.subPaths.map((sp, i) => (
-                      <path
-                        key={i}
-                        d={sp.d}
-                        fill={THERMAL_FILL[thermal]}
-                        stroke={THERMAL_STROKE[thermal]}
-                        strokeWidth={
-                          isSelected ? 1.6 : hoveredId === n.id ? 1.2 : 0.7
-                        }
-                        strokeLinejoin="round"
-                        vectorEffect="non-scaling-stroke"
-                        style={{
-                          cursor: "pointer",
-                          transition: "fill 400ms ease, stroke-width 200ms",
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSelect(n.id);
-                        }}
-                        onMouseEnter={() => setHoveredId(n.id)}
-                        onMouseLeave={() => {
-                          setHoveredId(null);
-                          setTooltip(null);
-                        }}
-                        onMouseMove={(e) =>
-                          setTooltip({
-                            x: e.clientX,
-                            y: e.clientY,
-                            label: sp.name,
-                          })
-                        }
-                        onTouchStart={() => {
-                          setHoveredId(n.id);
-                        }}
-                      >
-                        <title>{sp.name}</title>
-                      </path>
-                    ))}
+                {polygonState.map(({ n, subStates }) => (
+                  <g key={n.id}>
+                    {subStates.map(({ sp, key, isSelected, thermal }) => {
+                      const isHovered = hoveredKey === key;
+                      return (
+                        <path
+                          key={key}
+                          d={sp.d}
+                          fill={THERMAL_FILL[thermal]}
+                          stroke={THERMAL_STROKE[thermal]}
+                          strokeWidth={
+                            isSelected
+                              ? 1.8
+                              : isHovered
+                                ? 1.3
+                                : microStrokeWidthBase
+                          }
+                          strokeLinejoin="round"
+                          vectorEffect="non-scaling-stroke"
+                          style={{
+                            cursor: "pointer",
+                            transition:
+                              "fill 400ms ease, stroke-width 180ms ease, opacity 250ms ease, filter 180ms ease",
+                            opacity:
+                              selectedKey && !isSelected ? 0.5 : 1,
+                            filter:
+                              isHovered && !isSelected
+                                ? "brightness(1.08)"
+                                : "none",
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSelect(n.id, sp.name);
+                          }}
+                          onMouseEnter={() => setHoveredKey(key)}
+                          onMouseLeave={() => {
+                            setHoveredKey((k) => (k === key ? null : k));
+                            setTooltip(null);
+                          }}
+                          onMouseMove={(e) =>
+                            setTooltip({
+                              x: e.clientX,
+                              y: e.clientY,
+                              label: sp.name,
+                            })
+                          }
+                          onTouchStart={() => setHoveredKey(key)}
+                        >
+                          <title>{sp.name}</title>
+                        </path>
+                      );
+                    })}
 
                     {/* Macro label (Tier 1) */}
                     <text
@@ -440,7 +488,7 @@ function Index() {
                       dominantBaseline="central"
                       className="neighborhood-label"
                       letterSpacing="0.06em"
-                      fill="var(--primary)"
+                      fill="#183659"
                       style={{
                         pointerEvents: "none",
                         opacity: microVisible ? 0 : 1,
@@ -451,24 +499,24 @@ function Index() {
                     </text>
 
                     {/* Micro labels (Tier 2) */}
-                    {n.subPaths.map((sp, i) => (
+                    {n.subPaths.map((sp) => (
                       <text
-                        key={`micro-${i}`}
+                        key={`micro-${sp.name}`}
                         x={sp.cx}
                         y={sp.cy}
                         textAnchor="middle"
                         dominantBaseline="central"
-                        fill="var(--primary)"
+                        fill="#183659"
                         style={{
                           pointerEvents: "none",
                           opacity: microVisible ? 1 : 0,
-                          transition: "opacity 250ms ease",
-                          fontSize: `${7 / Math.max(zoom, 1)}px`,
+                          transition: "opacity 250ms ease, font-size 180ms ease",
+                          fontSize: `${microFontSize}px`,
                           fontWeight: 600,
-                          letterSpacing: "0.02em",
+                          letterSpacing: "0.01em",
                         }}
                       >
-                        {sp.name}
+                        {renderWrappedLabel(sp.name, sp.cx, microFontSize)}
                       </text>
                     ))}
                   </g>
@@ -485,23 +533,31 @@ function Index() {
                 />
                 <text
                   x="182.5"
-                  y="300"
+                  y={microVisible ? 296 : 300}
                   textAnchor="middle"
                   dominantBaseline="central"
                   className="park-label"
                   fill="var(--park-stroke)"
-                  style={{ pointerEvents: "none" }}
+                  style={{
+                    pointerEvents: "none",
+                    fontSize: microVisible ? `${Math.max(5.5, 9 / Math.max(zoom, 1))}px` : undefined,
+                    transition: "font-size 180ms ease",
+                  }}
                 >
                   CENTRAL
                 </text>
                 <text
                   x="182.5"
-                  y="312"
+                  y={microVisible ? 306 : 312}
                   textAnchor="middle"
                   dominantBaseline="central"
                   className="park-label"
                   fill="var(--park-stroke)"
-                  style={{ pointerEvents: "none" }}
+                  style={{
+                    pointerEvents: "none",
+                    fontSize: microVisible ? `${Math.max(5.5, 9 / Math.max(zoom, 1))}px` : undefined,
+                    transition: "font-size 180ms ease",
+                  }}
                 >
                   PARK
                 </text>
@@ -531,9 +587,10 @@ function Index() {
       </main>
 
       <BottomSheet
-        open={!!selected}
-        onClose={() => setSelectedId(null)}
-        neighborhood={selected}
+        open={!!selection}
+        onClose={() => setSelectedKey(null)}
+        neighborhood={selection?.n ?? null}
+        displayName={selection?.sp.name ?? null}
         metrics={selectedMetrics}
         localType={localType}
         localSize={localSize}
@@ -542,6 +599,32 @@ function Index() {
       />
     </div>
   );
+}
+
+/**
+ * Renders a micro label as tspans. If the name has multiple words and is
+ * long enough that it might clip its polygon, wrap onto two lines around
+ * the middle word.
+ */
+function renderWrappedLabel(name: string, cx: number, fontSize: number) {
+  const parts = name.split(" ");
+  if (parts.length > 1 && name.length > 9) {
+    const mid = Math.ceil(parts.length / 2);
+    const line1 = parts.slice(0, mid).join(" ");
+    const line2 = parts.slice(mid).join(" ");
+    const lineHeight = fontSize * 1.05;
+    return (
+      <>
+        <tspan x={cx} dy={-lineHeight / 2}>
+          {line1}
+        </tspan>
+        <tspan x={cx} dy={lineHeight}>
+          {line2}
+        </tspan>
+      </>
+    );
+  }
+  return name;
 }
 
 function LegendRow({ color, label }: { color: string; label: string }) {
@@ -591,6 +674,7 @@ function BottomSheet({
   open,
   onClose,
   neighborhood,
+  displayName,
   metrics,
   localType,
   localSize,
@@ -600,6 +684,7 @@ function BottomSheet({
   open: boolean;
   onClose: () => void;
   neighborhood: Neighborhood | null;
+  displayName: string | null;
   metrics: ReturnType<typeof computeMetrics> | null;
   localType: PropertyType;
   localSize: SizeType;
@@ -648,8 +733,11 @@ function BottomSheet({
             <div className="flex shrink-0 items-start justify-between gap-3 px-5 pt-3 md:px-8 md:pt-7">
               <div>
                 <h2 className="text-2xl font-semibold tracking-tight text-primary">
-                  {neighborhood.name}
+                  {displayName ?? neighborhood.name}
                 </h2>
+                <p className="mt-0.5 text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                  {neighborhood.name}
+                </p>
                 <span
                   className="mt-1.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium"
                   style={{ backgroundColor: badgeBg, color: badgeColor }}
@@ -699,7 +787,7 @@ function BottomSheet({
                 <Metric label="In Contract" value={`${metrics.inContract}`} />
               </div>
 
-              <LeadCapture neighborhoodName={neighborhood.name} />
+              <LeadCapture neighborhoodName={displayName ?? neighborhood.name} />
             </div>
 
             <div className="shrink-0 border-t border-border/60 bg-card px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 md:border-t-0 md:px-8 md:pb-7 md:pt-4">
