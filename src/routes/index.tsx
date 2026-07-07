@@ -918,13 +918,13 @@ function BottomSheet({
             <div className="flex-1 overflow-y-auto px-5 pb-3 pt-3 md:px-8 md:pt-4">
               <div className="flex flex-wrap items-center gap-2">
                 <Segmented
-                  size="sm"
+                  size="lg"
                   options={["All", "Condo", "Co-op", "TH"] as const}
                   value={localType}
                   onChange={setLocalType}
                 />
                 <Segmented
-                  size="sm"
+                  size="lg"
                   options={["All", "1 Bed", "2 Bed", "3 Bed"] as const}
                   value={localSize}
                   onChange={setLocalSize}
