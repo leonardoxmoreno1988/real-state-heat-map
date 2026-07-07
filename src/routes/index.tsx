@@ -426,7 +426,7 @@ function Index() {
         const polyW = bb?.w ?? 40;
         const polyH = bb?.h ?? 40;
         const area = polyW * polyH;
-        // "Small" polygons get a couple font-size steps smaller (~10px).
+        const isSmall = area < 900;
         // 3-tier target visual pixel size (SVG is inside a scaled wrapper,
         // so we divide by z to keep on-screen size predictable per tier).
         // Tier 2 (1.4x–2.2x): compact, crisp. Tier 3 (>2.2x): comfortable read.
