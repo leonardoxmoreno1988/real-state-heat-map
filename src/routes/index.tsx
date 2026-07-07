@@ -553,6 +553,9 @@ function Index() {
                       return (
                         <path
                           key={key}
+                          ref={(el) => {
+                            pathRefs.current[key] = el;
+                          }}
                           d={sp.d}
                           fill={THERMAL_FILL[thermal]}
                           stroke={THERMAL_STROKE[thermal]}
@@ -617,27 +620,53 @@ function Index() {
                       {n.shortName}
                     </text>
 
-                    {/* Micro labels (Tier 2) */}
-                    {n.subPaths.map((sp) => (
-                      <text
-                        key={`micro-${sp.name}`}
-                        x={sp.cx}
-                        y={sp.cy}
-                        textAnchor="middle"
-                        dominantBaseline="central"
-                        fill="#183659"
-                        style={{
-                          pointerEvents: "none",
-                          opacity: microVisible ? 1 : 0,
-                          transition: "opacity 250ms ease, font-size 180ms ease",
-                          fontSize: `${microFontSize}px`,
-                          fontWeight: 600,
-                          letterSpacing: "0.01em",
-                        }}
-                      >
-                        {renderWrappedLabel(sp.name, sp.cx, microFontSize)}
-                      </text>
-                    ))}
+                    {/* Micro labels (Tier 2) — collision-managed, per-polygon fit */}
+                    {n.subPaths.map((sp) => {
+                      const key = subKey(n.id, sp.name);
+                      const layout = labelLayouts[key];
+                      if (!layout) {
+                        return (
+                          <text
+                            key={`micro-${sp.name}`}
+                            x={sp.cx}
+                            y={sp.cy}
+                            style={{ opacity: 0, pointerEvents: "none" }}
+                          />
+                        );
+                      }
+                      const { fontSize, lines, visible } = layout;
+                      const lineHeight = fontSize * 1.15;
+                      const startDy = -((lines.length - 1) * lineHeight) / 2;
+                      return (
+                        <text
+                          key={`micro-${sp.name}`}
+                          x={sp.cx}
+                          y={sp.cy}
+                          textAnchor="middle"
+                          dominantBaseline="central"
+                          fill="#183659"
+                          style={{
+                            pointerEvents: "none",
+                            opacity: microVisible && visible ? 1 : 0,
+                            transition:
+                              "opacity 250ms ease, font-size 180ms ease",
+                            fontSize: `${fontSize}px`,
+                            fontWeight: 600,
+                            letterSpacing: "0.01em",
+                          }}
+                        >
+                          {lines.map((line, i) => (
+                            <tspan
+                              key={i}
+                              x={sp.cx}
+                              dy={i === 0 ? startDy : lineHeight}
+                            >
+                              {line}
+                            </tspan>
+                          ))}
+                        </text>
+                      );
+                    })}
                   </g>
                 ))}
 
