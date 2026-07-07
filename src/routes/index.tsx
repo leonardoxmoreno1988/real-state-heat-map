@@ -363,7 +363,7 @@ function Index() {
           doubleClick={{ mode: "toggle", step: 1.6 }}
           pinch={{ step: 8 }}
           panning={{ velocityDisabled: true }}
-          onTransformed={(_ref, state: { scale: number }) => setZoom(state.scale)}
+          onTransform={(ref) => setZoom(ref.state.scale)}
           onZoom={(ref) => setZoom(ref.state.scale)}
         >
           <TransformComponent
