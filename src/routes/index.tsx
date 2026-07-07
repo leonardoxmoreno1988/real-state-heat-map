@@ -427,9 +427,14 @@ function Index() {
         const polyH = bb?.h ?? 40;
         const area = polyW * polyH;
         // "Small" polygons get a couple font-size steps smaller (~10px).
-        const isSmall = area < 900;
-        const baseSize = isSmall ? 8.5 : 11;
-        let fontSize = Math.max(5.5, baseSize / z);
+        // 3-tier target visual pixel size (SVG is inside a scaled wrapper,
+        // so we divide by z to keep on-screen size predictable per tier).
+        // Tier 2 (1.4x–2.2x): compact, crisp. Tier 3 (>2.2x): comfortable read.
+        const tier3 = z >= ZOOM_THRESHOLD_LG;
+        const targetPx = tier3
+          ? (isSmall ? 13 : 15)
+          : (isSmall ? 10 : 11.5);
+        let fontSize = Math.max(5.5, targetPx / z);
 
         // Try single line; if too wide for polygon, wrap around the middle.
         const words = sp.name.split(" ");
