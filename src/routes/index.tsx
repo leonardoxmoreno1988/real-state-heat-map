@@ -810,6 +810,35 @@ function LegendRow({ color, label }: { color: string; label: string }) {
   );
 }
 
+function DisclaimerInfo() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div
+      className="relative"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <button
+        type="button"
+        aria-label="Data disclaimer"
+        onClick={() => setOpen((v) => !v)}
+        className="flex h-7 w-7 items-center justify-center rounded-md border border-border/60 bg-card/85 text-muted-foreground shadow-none backdrop-blur-md transition-colors hover:text-foreground"
+      >
+        <Info size={14} strokeWidth={1.8} />
+      </button>
+      {open && (
+        <div
+          role="tooltip"
+          className="absolute bottom-full left-0 mb-2 w-64 rounded-md border border-border/60 bg-card px-3 py-2 text-[11px] leading-snug text-muted-foreground shadow-lg backdrop-blur-md"
+        >
+          Market indicators are estimates based on available listing data and may be delayed or incomplete. Not real estate, financial, legal, or investment advice.
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 function LogoA() {
   return (
     <svg
