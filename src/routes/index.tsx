@@ -61,7 +61,7 @@ const NEIGHBORHOODS: Neighborhood[] = [
     shortName: "UWS",
     subPaths: [
       { d: "M110.524 219.693C106.164 204.573 110.394 189.533 113.054 183.903L146.984 196.623H163.904V238.473H112.274C112.804 229.723 111.334 222.303 110.524 219.693Z", name: "Morningside Heights", cx: 137, cy: 213 },
-      { d: "M112.344 339.153V238.543H163.554V339.153H112.344Z", name: "Lincoln Square", cx: 137, cy: 288 },
+      { d: "M112.344 339.153V238.543H163.554V339.153H112.344Z", name: "Upper West Side", cx: 137, cy: 288 },
     ],
     labelX: 137,
     labelY: 285,
