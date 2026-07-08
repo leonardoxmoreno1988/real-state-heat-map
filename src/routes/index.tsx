@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Building } from "lucide-react";
+import { Building, Info } from "lucide-react";
 import {
   TransformWrapper,
   TransformComponent,
@@ -42,8 +42,8 @@ const NEIGHBORHOODS: Neighborhood[] = [
     shortName: "Harlem",
     subPaths: [
       { d: "M113.614 132.833L114.204 111.433L169.254 111.243C174.084 117.673 185.214 128.313 190.184 132.833H113.614Z", name: "Hamilton Heights", cx: 150, cy: 122 },
-      { d: "M106.224 80.2325C105.574 67.4125 106.494 49.9225 107.044 42.7825L152.904 52.5625C153.294 63.3925 154.044 75.9225 154.504 80.4625L106.234 80.2325H106.224Z", name: "Inwood", cx: 130, cy: 61 },
-      { d: "M153.134 52.5425L106.854 42.6725C106.854 32.6025 109.114 26.1725 110.254 24.0125C111.694 21.7125 116.234 17.7125 122.824 20.1025C128.554 22.1725 133.284 21.8725 135.614 21.3125C136.204 21.1725 136.714 20.8125 137.134 20.3725C144.094 13.3225 150.574 16.2225 153.674 19.2125C154.234 19.7525 154.444 20.5325 154.364 21.2925C153.294 31.6425 153.094 46.1625 153.124 52.5425H153.134Z", name: "Marble Hill", cx: 130, cy: 32 },
+      { d: "M106.224 80.2325C105.574 67.4125 106.494 49.9225 107.044 42.7825L152.904 52.5625C153.294 63.3925 154.044 75.9225 154.504 80.4625L106.234 80.2325H106.224Z", name: "Fort George", cx: 130, cy: 61 },
+      { d: "M153.134 52.5425L106.854 42.6725C106.854 32.6025 109.114 26.1725 110.254 24.0125C111.694 21.7125 116.234 17.7125 122.824 20.1025C128.554 22.1725 133.284 21.8725 135.614 21.3125C136.204 21.1725 136.714 20.8125 137.134 20.3725C144.094 13.3225 150.574 16.2225 153.674 19.2125C154.234 19.7525 154.444 20.5325 154.364 21.2925C153.294 31.6425 153.094 46.1625 153.124 52.5425H153.134Z", name: "Inwood", cx: 130, cy: 32 },
       { d: "M114.314 111.163C115.314 96.5625 109.704 84.3325 106.564 80.1725L154.534 80.4225C156.574 93.5225 165.084 106.373 169.084 111.163H114.314Z", name: "Washington Heights", cx: 138, cy: 96 },
       { d: "M231.194 173.263C217.114 166.383 205.404 152.493 201.534 146.033L201.954 276.603H260.404C259.614 274.003 260.734 270.013 261.394 268.343C262.544 259.273 264.834 234.933 264.834 210.123C264.834 185.313 242.414 175.213 231.204 173.263H231.194Z", name: "East Harlem", cx: 232, cy: 225 },
       { d: "M107.504 141.933C113.794 140.263 114.594 135.253 114.204 132.953L188.894 132.933L201.574 145.613V238.343H163.884V196.513H146.904L112.894 183.903C117.684 168.193 111.294 160.733 107.504 158.973V141.943V141.933Z", name: "Central Harlem", cx: 155, cy: 170 },
@@ -766,11 +766,19 @@ function Index() {
           </div>
         )}
 
-        <div className="pointer-events-none absolute bottom-4 left-4 z-10 flex flex-col gap-1.5 rounded-none border border-border/60 bg-card/85 px-3 py-2.5 text-[11px] shadow-none backdrop-blur-md">
-          <LegendRow color="var(--hot)" label="Hot · Seller's" />
-          <LegendRow color="var(--even)" label="Even · Neutral" />
-          <LegendRow color="var(--cold)" label="Cold · Buyer's" />
+        <div className="pointer-events-auto absolute bottom-4 left-4 z-10 flex items-start gap-2">
+          <div className="flex flex-col gap-1.5 rounded-md border border-border/60 bg-card/85 px-3 py-2.5 text-[11px] shadow-none backdrop-blur-md">
+            <LegendRow color="var(--hot)" label="Hot · Seller's" />
+            <LegendRow color="var(--even)" label="Even · Neutral" />
+            <LegendRow color="var(--cold)" label="Cold · Buyer's" />
+          </div>
+          <DisclaimerInfo />
         </div>
+
+        <div className="pointer-events-none absolute bottom-3 right-4 z-10 text-[10px] tracking-tight text-slate-400/70">
+          © 2026 Alta Forecast · Privacy · Terms
+        </div>
+
       </main>
 
       <BottomSheet
@@ -801,6 +809,35 @@ function LegendRow({ color, label }: { color: string; label: string }) {
     </div>
   );
 }
+
+function DisclaimerInfo() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div
+      className="relative"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <button
+        type="button"
+        aria-label="Data disclaimer"
+        onClick={() => setOpen((v) => !v)}
+        className="flex h-7 w-7 items-center justify-center rounded-md border border-border/60 bg-card/85 text-muted-foreground shadow-none backdrop-blur-md transition-colors hover:text-foreground"
+      >
+        <Info size={14} strokeWidth={1.8} />
+      </button>
+      {open && (
+        <div
+          role="tooltip"
+          className="absolute bottom-full left-0 mb-2 w-64 rounded-md border border-border/60 bg-card px-3 py-2 text-[11px] leading-snug text-muted-foreground shadow-lg backdrop-blur-md"
+        >
+          Market indicators are estimates based on available listing data and may be delayed or incomplete. Not real estate, financial, legal, or investment advice.
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 function LogoA() {
   return (
