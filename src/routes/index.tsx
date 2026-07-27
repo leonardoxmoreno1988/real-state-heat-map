@@ -949,15 +949,15 @@ function FloatingCard({
   return (
     <aside
       aria-hidden={!open}
-      className={`pointer-events-none fixed inset-0 z-50 flex items-center justify-center px-4 transition-opacity duration-300 ${
+      className={`pointer-events-none absolute inset-0 z-50 flex items-center justify-center px-4 py-6 transition-opacity duration-300 ${
         open ? "opacity-100" : "opacity-0"
       }`}
     >
       <div
-        className={`pointer-events-auto flex w-full max-w-[380px] flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-[0_30px_80px_-20px_rgba(15,23,42,0.35)] transition-all duration-400 ease-[cubic-bezier(0.22,1,0.36,1)] md:max-w-[440px] ${
+        className={`pointer-events-auto flex w-full max-w-[360px] flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-[0_30px_80px_-20px_rgba(15,23,42,0.35)] transition-all duration-400 ease-[cubic-bezier(0.22,1,0.36,1)] md:max-w-[440px] ${
           open ? "translate-y-0 scale-100" : "pointer-events-none translate-y-3 scale-[0.98]"
         }`}
-        style={{ maxHeight: "min(78dvh, 620px)" }}
+        style={{ maxHeight: "100%" }}
       >
         {neighborhood && metrics && (
           <>
