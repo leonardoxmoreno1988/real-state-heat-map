@@ -822,17 +822,22 @@ function Index() {
             <ChevronLeft size={18} strokeWidth={2} />
           </button>
         )}
-        <FloatingCard
-          open={!!selection}
-          onClose={() => setSelectedKey(null)}
-          neighborhood={selection?.n ?? null}
-          displayName={selection?.sp.name ?? null}
-          metrics={selectedMetrics}
-          localType={globalType}
-          localSize={globalSize}
-          setLocalType={setGlobalType}
-          setLocalSize={setGlobalSize}
-        />
+        </div>
+
+        {selection && (
+          <FloatingCard
+            open
+            onClose={() => setSelectedKey(null)}
+            neighborhood={selection.n}
+            displayName={selection.sp.name}
+            metrics={selectedMetrics}
+            localType={globalType}
+            localSize={globalSize}
+            setLocalType={setGlobalType}
+            setLocalSize={setGlobalSize}
+          />
+        )}
+
       </main>
 
 
