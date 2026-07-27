@@ -291,12 +291,14 @@ function Segmented<T extends string>({
   onChange,
   size = "md",
   fullWidth = false,
+  variant = "strip",
 }: {
   options: readonly T[];
   value: T;
   onChange: (v: T) => void;
   size?: "sm" | "md" | "lg";
   fullWidth?: boolean;
+  variant?: "strip" | "pills";
 }) {
   const pad =
     size === "sm"
@@ -304,6 +306,31 @@ function Segmented<T extends string>({
       : size === "lg"
         ? "px-4 py-2 text-sm"
         : "px-3.5 py-1.5 text-[13px]";
+
+  if (variant === "pills") {
+    return (
+      <div className="-mx-1 flex w-full gap-1.5 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {options.map((opt) => {
+          const active = opt === value;
+          return (
+            <button
+              key={opt}
+              type="button"
+              onClick={() => onChange(opt)}
+              className={`${pad} shrink-0 whitespace-nowrap rounded-md font-semibold tracking-tight transition-all duration-200 ${
+                active
+                  ? "bg-[#0D2847] text-white"
+                  : "bg-[#E2E8F0] text-[#475569] hover:bg-[#d6dee9]"
+              }`}
+            >
+              {opt}
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <div className={`${fullWidth ? "flex w-full" : "inline-flex"} rounded-md bg-secondary p-1`}>
 
