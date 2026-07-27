@@ -555,12 +555,12 @@ function Index() {
 
         <div className="mx-auto flex max-w-3xl flex-col gap-4 px-5 pb-4 pt-2 sm:flex-row sm:items-center sm:justify-start">
           <Segmented
-            options={["All", "Condo", "Co-op", "TH"] as const}
+            options={TYPE_OPTIONS}
             value={globalType}
             onChange={setGlobalType}
           />
           <Segmented
-            options={["All", "1 Bed", "2 Bed", "3 Bed"] as const}
+            options={SIZE_OPTIONS}
             value={globalSize}
             onChange={setGlobalSize}
           />
