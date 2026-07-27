@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Building, Info } from "lucide-react";
+import { Building, ChevronLeft, Info } from "lucide-react";
 import {
   TransformWrapper,
   TransformComponent,
@@ -10,8 +10,11 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-type PropertyType = "All" | "Condo" | "Co-op" | "TH";
-type SizeType = "All" | "1 Bed" | "2 Bed" | "3 Bed";
+type PropertyType = "All" | "Condo" | "Co-op" | "Townhouse";
+type SizeType = "All" | "Studio" | "1 Bed" | "2 Bed" | "3 Bed" | "+4 Bed";
+
+const TYPE_OPTIONS = ["All", "Condo", "Co-op", "Townhouse"] as const;
+const SIZE_OPTIONS = ["All", "Studio", "1 Bed", "2 Bed", "3 Bed", "+4 Bed"] as const;
 type Thermal = "hot" | "even" | "cold";
 
 interface SubPath {
@@ -191,13 +194,15 @@ const TYPE_FACTORS: Record<PropertyType, number> = {
   All: 1,
   Condo: 0.78,
   "Co-op": 1.18,
-  TH: 0.92,
+  Townhouse: 0.92,
 };
 const SIZE_FACTORS: Record<SizeType, number> = {
   All: 1,
+  Studio: 0.72,
   "1 Bed": 0.85,
   "2 Bed": 1.0,
   "3 Bed": 1.22,
+  "+4 Bed": 1.4,
 };
 
 function thermalFor(supply: number): Thermal {
