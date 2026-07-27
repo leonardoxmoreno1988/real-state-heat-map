@@ -906,7 +906,18 @@ function LogoA() {
   );
 }
 
-function BottomSheet({
+const MARKET_LABEL: Record<Thermal, string> = {
+  hot: "Seller's Market",
+  even: "Neutral",
+  cold: "Buyer's Market",
+};
+
+const SUPPLY_TIP =
+  "Months of Supply measures how long current listing inventory would last at the current rate of sales. Less than 4 months signals a Seller's Market; over 6 months signals a Buyer's Market.";
+const DOM_TIP =
+  "Average number of days properties in this neighborhood spend on the market before going under contract or closing.";
+
+function FloatingCard({
   open,
   onClose,
   neighborhood,
@@ -941,50 +952,29 @@ function BottomSheet({
         ? "#0369A1"
         : "#475569";
 
-
   return (
-    <>
-      {open && (
-        <button
-          type="button"
-          aria-label="Close panel"
-          onClick={onClose}
-          className="fixed inset-0 z-40 bg-primary/20 backdrop-blur-sm transition-opacity animate-fade-in"
-        />
-      )}
-      <aside
-        aria-hidden={!open}
-        className={`fixed z-50 flex flex-col overflow-hidden border border-border/70 bg-card transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] inset-x-0 bottom-0 mx-auto max-w-3xl rounded-2xl shadow-[0_-20px_60px_-20px_rgba(15,23,42,0.25)] md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2 md:mx-0 md:w-[min(576px,92vw)] md:max-w-xl md:rounded-2xl md:shadow-[0_30px_80px_-20px_rgba(15,23,42,0.35)] ${
-          open
-            ? "translate-y-0 opacity-100 md:-translate-x-1/2 md:-translate-y-1/2"
-            : "translate-y-full opacity-0 pointer-events-none md:-translate-x-1/2 md:-translate-y-[calc(50%-12px)]"
+    <aside
+      aria-hidden={!open}
+      className={`pointer-events-none fixed inset-0 z-50 flex items-center justify-center px-4 transition-opacity duration-300 ${
+        open ? "opacity-100" : "opacity-0"
+      }`}
+    >
+      <div
+        className={`pointer-events-auto flex w-full max-w-[380px] flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-[0_30px_80px_-20px_rgba(15,23,42,0.35)] transition-all duration-400 ease-[cubic-bezier(0.22,1,0.36,1)] md:max-w-[440px] ${
+          open ? "translate-y-0 scale-100" : "pointer-events-none translate-y-3 scale-[0.98]"
         }`}
-        style={{ maxHeight: "88vh", height: "auto" }}
+        style={{ maxHeight: "min(78dvh, 620px)" }}
       >
-        <div className="flex shrink-0 items-center justify-center pt-2.5 md:hidden">
-          <span className="h-1.5 w-10 rounded-full bg-border" />
-        </div>
-
         {neighborhood && metrics && (
           <>
-            <div className="flex shrink-0 items-start justify-between gap-3 px-5 pt-3 md:px-8 md:pt-7">
+            <div className="flex shrink-0 items-start justify-between gap-3 px-5 pt-5">
               <div>
-                <h2 className="text-2xl font-semibold tracking-tight text-primary">
+                <h2 className="text-[22px] font-bold leading-tight tracking-tight text-primary">
                   {displayName ?? neighborhood.name}
                 </h2>
-                <p className="mt-0.5 text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                <p className="mt-0.5 text-[10.5px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
                   {neighborhood.name}
                 </p>
-                <span
-                  className="mt-1.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium"
-                  style={{ backgroundColor: badgeBg, color: badgeColor }}
-                >
-                  <span
-                    className="h-1.5 w-1.5 rounded-full"
-                    style={{ backgroundColor: badgeColor }}
-                  />
-                  {THERMAL_LABEL[thermal]}
-                </span>
               </div>
               <button
                 type="button"
@@ -998,29 +988,38 @@ function BottomSheet({
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-5 pb-3 pt-3 md:px-8 md:pt-4">
+            <div className="flex-1 overflow-y-auto px-5 pb-3 pt-3">
               <div className="flex flex-col gap-2">
                 <Segmented
-                  size="lg"
-                  fullWidth
-                  options={["All", "Condo", "Co-op", "TH"] as const}
+                  size="sm"
+                  variant="pills"
+                  options={TYPE_OPTIONS}
                   value={localType}
                   onChange={setLocalType}
                 />
                 <Segmented
-                  size="lg"
-                  fullWidth
-                  options={["All", "1 Bed", "2 Bed", "3 Bed"] as const}
+                  size="sm"
+                  variant="pills"
+                  options={SIZE_OPTIONS}
                   value={localSize}
                   onChange={setLocalSize}
                 />
               </div>
 
+              <span
+                className="mt-3 inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-semibold"
+                style={{ backgroundColor: badgeBg, color: badgeColor }}
+              >
+                <span
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{ backgroundColor: badgeColor }}
+                />
+                {MARKET_LABEL[thermal]}
+              </span>
 
-
-              <div className="mt-4 grid grid-cols-2 gap-2.5">
-                <Metric label="Supply" value={`${metrics.supply}`} unit="mo" />
-                <Metric label="Avg DOM" value={`${metrics.dom}`} unit="days" />
+              <div className="mt-3 grid grid-cols-2 gap-2.5">
+                <Metric label="Supply" value={`${metrics.supply}`} unit="mo" tip={SUPPLY_TIP} />
+                <Metric label="Avg DOM" value={`${metrics.dom}`} unit="days" tip={DOM_TIP} />
                 <Metric
                   label="Avg Price / sqft"
                   value={`$${metrics.ppsf.toLocaleString()}`}
@@ -1031,28 +1030,59 @@ function BottomSheet({
               <LeadCapture neighborhoodName={displayName ?? neighborhood.name} />
             </div>
 
-            <div className="shrink-0 border-t border-border/60 bg-card px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 md:border-t-0 md:px-8 md:pb-7 md:pt-4">
+            <div className="shrink-0 bg-card px-5 pb-5 pt-2">
               <button
                 type="button"
-                className="flex w-full items-center justify-center gap-2 rounded-md border border-[#183659] bg-transparent py-3.5 text-sm font-semibold tracking-[0.08em] text-[#183659] transition-transform hover:scale-[1.01] active:scale-[0.99]"
+                className="flex w-full items-center justify-center gap-2 rounded-md border border-[#183659] bg-transparent py-3 text-sm font-semibold tracking-tight text-[#183659] transition-transform hover:scale-[1.01] active:scale-[0.99]"
               >
                 <Building size={16} strokeWidth={2} aria-hidden className="shrink-0" />
-                SEE LISTINGS
+                See listings
               </button>
             </div>
           </>
         )}
-      </aside>
-    </>
+      </div>
+    </aside>
   );
 }
 
-function Metric({ label, value, unit }: { label: string; value: string; unit?: string }) {
+function Metric({
+  label,
+  value,
+  unit,
+  tip,
+}: {
+  label: string;
+  value: string;
+  unit?: string;
+  tip?: string;
+}) {
+  const [open, setOpen] = useState(false);
   return (
-    <div className="flex flex-col justify-between rounded-md bg-secondary/70 p-3.5">
-      <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+    <div className="relative flex flex-col justify-between rounded-md bg-secondary/70 p-3.5">
+      <span className="flex items-center gap-1 text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
         {label}
+        {tip && (
+          <button
+            type="button"
+            aria-label={`${label} explanation`}
+            onClick={() => setOpen((v) => !v)}
+            onMouseEnter={() => setOpen(true)}
+            onMouseLeave={() => setOpen(false)}
+            className="text-muted-foreground/70 transition-colors hover:text-foreground"
+          >
+            <Info size={11} strokeWidth={2} />
+          </button>
+        )}
       </span>
+      {tip && open && (
+        <div
+          role="tooltip"
+          className="absolute bottom-full left-0 z-20 mb-2 w-60 rounded-md border border-border/70 bg-card px-3 py-2 text-[11px] font-normal normal-case leading-snug tracking-normal text-muted-foreground shadow-lg"
+        >
+          {tip}
+        </div>
+      )}
       <span className="mt-1 flex items-baseline gap-1">
         <span className="text-xl font-semibold tracking-tight text-primary">{value}</span>
         {unit && <span className="text-[11px] text-muted-foreground">{unit}</span>}
