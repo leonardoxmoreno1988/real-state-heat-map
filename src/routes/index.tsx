@@ -527,7 +527,9 @@ function Index() {
 
   return (
     <div className="flex h-[100dvh] flex-col overflow-hidden bg-background text-foreground">
+      {!selection && (
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur-xl">
+
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-5">
           <div className="flex items-center gap-2.5">
             <LogoA />
@@ -566,9 +568,14 @@ function Index() {
           </div>
         </div>
       </header>
+      )}
 
-      <main className="relative flex-1 overflow-hidden bg-[var(--water)]">
+      <main className="flex flex-1 flex-col overflow-hidden bg-[var(--water)]">
+        <div
+          className={`relative min-h-0 w-full ${selection ? "h-[45%] shrink-0 sm:h-1/2" : "flex-1"}`}
+        >
         <TransformWrapper
+
           initialScale={1}
           minScale={1}
           maxScale={5}
