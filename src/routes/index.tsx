@@ -547,17 +547,23 @@ function Index() {
           </button>
         </div>
 
-        <div className="mx-auto flex max-w-3xl flex-col gap-4 px-5 pb-4 pt-2 sm:flex-row sm:items-center sm:justify-start">
-          <Segmented
-            options={TYPE_OPTIONS}
-            value={globalType}
-            onChange={setGlobalType}
-          />
-          <Segmented
-            options={SIZE_OPTIONS}
-            value={globalSize}
-            onChange={setGlobalSize}
-          />
+        <div className="mx-auto flex max-w-3xl flex-col gap-3 px-5 pb-4 pt-2 sm:flex-row sm:items-center sm:justify-start sm:gap-4">
+          <div className="-mx-1 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <Segmented
+              size="sm"
+              options={TYPE_OPTIONS}
+              value={globalType}
+              onChange={setGlobalType}
+            />
+          </div>
+          <div className="-mx-1 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <Segmented
+              size="sm"
+              options={SIZE_OPTIONS}
+              value={globalSize}
+              onChange={setGlobalSize}
+            />
+          </div>
         </div>
       </header>
 
