@@ -967,16 +967,12 @@ function FloatingCard({
   return (
     <aside
       aria-hidden={!open}
-      className={`pointer-events-none absolute inset-0 z-50 flex items-center justify-center px-4 py-6 transition-opacity duration-300 ${
-        open ? "opacity-100" : "opacity-0"
-      }`}
+      className="flex min-h-0 flex-1 justify-center overflow-hidden px-3 pb-3 pt-2"
     >
       <div
-        className={`pointer-events-auto flex w-full max-w-[360px] flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-[0_30px_80px_-20px_rgba(15,23,42,0.35)] transition-all duration-400 ease-[cubic-bezier(0.22,1,0.36,1)] md:max-w-[440px] ${
-          open ? "translate-y-0 scale-100" : "pointer-events-none translate-y-3 scale-[0.98]"
-        }`}
-        style={{ maxHeight: "100%" }}
+        className="flex h-full w-full max-w-[440px] flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-[0_20px_50px_-20px_rgba(15,23,42,0.3)]"
       >
+
         {neighborhood && metrics && (
           <>
             <div className="flex shrink-0 items-start justify-between gap-3 px-5 pt-5">
