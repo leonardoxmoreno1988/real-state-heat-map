@@ -969,11 +969,12 @@ function FloatingCard({
   return (
     <aside
       aria-hidden={!open}
-      className="flex min-h-0 flex-1 justify-center overflow-hidden px-3 pb-3 pt-2"
+      className="pointer-events-none absolute inset-x-0 bottom-0 z-40 flex max-h-[58%] justify-center overflow-hidden px-3 pb-3 pt-10"
     >
       <div
-        className="flex h-full w-full max-w-[440px] flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-[0_20px_50px_-20px_rgba(15,23,42,0.3)]"
+        className="pointer-events-auto flex h-full w-full max-w-[440px] flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-[0_20px_50px_-20px_rgba(15,23,42,0.3)]"
       >
+
 
         {neighborhood && metrics && (
           <>
