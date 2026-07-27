@@ -527,7 +527,9 @@ function Index() {
 
   return (
     <div className="flex h-[100dvh] flex-col overflow-hidden bg-background text-foreground">
+      {!selection && (
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur-xl">
+
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-5">
           <div className="flex items-center gap-2.5">
             <LogoA />
@@ -566,9 +568,14 @@ function Index() {
           </div>
         </div>
       </header>
+      )}
 
-      <main className="relative flex-1 overflow-hidden bg-[var(--water)]">
+      <main className="flex flex-1 flex-col overflow-hidden bg-[var(--water)]">
+        <div
+          className={`relative min-h-0 w-full ${selection ? "h-[45%] shrink-0 sm:h-1/2" : "flex-1"}`}
+        >
         <TransformWrapper
+
           initialScale={1}
           minScale={1}
           maxScale={5}
@@ -815,17 +822,22 @@ function Index() {
             <ChevronLeft size={18} strokeWidth={2} />
           </button>
         )}
-        <FloatingCard
-          open={!!selection}
-          onClose={() => setSelectedKey(null)}
-          neighborhood={selection?.n ?? null}
-          displayName={selection?.sp.name ?? null}
-          metrics={selectedMetrics}
-          localType={globalType}
-          localSize={globalSize}
-          setLocalType={setGlobalType}
-          setLocalSize={setGlobalSize}
-        />
+        </div>
+
+        {selection && (
+          <FloatingCard
+            open
+            onClose={() => setSelectedKey(null)}
+            neighborhood={selection.n}
+            displayName={selection.sp.name}
+            metrics={selectedMetrics}
+            localType={globalType}
+            localSize={globalSize}
+            setLocalType={setGlobalType}
+            setLocalSize={setGlobalSize}
+          />
+        )}
+
       </main>
 
 
@@ -955,16 +967,12 @@ function FloatingCard({
   return (
     <aside
       aria-hidden={!open}
-      className={`pointer-events-none absolute inset-0 z-50 flex items-center justify-center px-4 py-6 transition-opacity duration-300 ${
-        open ? "opacity-100" : "opacity-0"
-      }`}
+      className="flex min-h-0 flex-1 justify-center overflow-hidden px-3 pb-3 pt-2"
     >
       <div
-        className={`pointer-events-auto flex w-full max-w-[360px] flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-[0_30px_80px_-20px_rgba(15,23,42,0.35)] transition-all duration-400 ease-[cubic-bezier(0.22,1,0.36,1)] md:max-w-[440px] ${
-          open ? "translate-y-0 scale-100" : "pointer-events-none translate-y-3 scale-[0.98]"
-        }`}
-        style={{ maxHeight: "100%" }}
+        className="flex h-full w-full max-w-[440px] flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-[0_20px_50px_-20px_rgba(15,23,42,0.3)]"
       >
+
         {neighborhood && metrics && (
           <>
             <div className="flex shrink-0 items-start justify-between gap-3 px-5 pt-5">
