@@ -798,14 +798,17 @@ function Index() {
           </div>
         )}
 
-        <div className="pointer-events-auto absolute bottom-4 left-4 z-10 flex items-start gap-2">
-          <div className="flex flex-col gap-1.5 rounded-md border border-border/60 bg-card/85 px-3 py-2.5 text-[11px] shadow-none backdrop-blur-md">
-            <LegendRow color="var(--hot)" label="Hot · Seller's" />
-            <LegendRow color="var(--even)" label="Even · Neutral" />
-            <LegendRow color="var(--cold)" label="Cold · Buyer's" />
+        {!selection && (
+          <div className="pointer-events-auto absolute bottom-4 left-4 z-10 flex items-start gap-2">
+            <div className="flex flex-col gap-1.5 rounded-md border border-border/60 bg-card/85 px-3 py-2.5 text-[11px] shadow-none backdrop-blur-md">
+              <LegendRow color="var(--hot)" label="Hot · Seller's" />
+              <LegendRow color="var(--even)" label="Even · Neutral" />
+              <LegendRow color="var(--cold)" label="Cold · Buyer's" />
+            </div>
+            <DisclaimerInfo />
           </div>
-          <DisclaimerInfo />
-        </div>
+        )}
+
 
         <div className="pointer-events-none absolute bottom-3 right-4 z-10 text-[10px] tracking-tight text-slate-400/70">
           © 2026 Alta Forecast · Privacy · Terms
