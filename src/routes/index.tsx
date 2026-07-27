@@ -805,19 +805,30 @@ function Index() {
           © 2026 Alta Forecast · Privacy · Terms
         </div>
 
+        {selection && (
+          <button
+            type="button"
+            onClick={() => setSelectedKey(null)}
+            aria-label="Clear selection"
+            className="absolute left-4 top-4 z-[60] flex h-9 w-9 items-center justify-center rounded-md border border-border/70 bg-card/90 text-primary shadow-sm backdrop-blur-md transition-colors hover:bg-card"
+          >
+            <ChevronLeft size={18} strokeWidth={2} />
+          </button>
+        )}
       </main>
 
-      <BottomSheet
+      <FloatingCard
         open={!!selection}
         onClose={() => setSelectedKey(null)}
         neighborhood={selection?.n ?? null}
         displayName={selection?.sp.name ?? null}
         metrics={selectedMetrics}
-        localType={localType}
-        localSize={localSize}
-        setLocalType={setLocalType}
-        setLocalSize={setLocalSize}
+        localType={globalType}
+        localSize={globalSize}
+        setLocalType={setGlobalType}
+        setLocalSize={setGlobalSize}
       />
+
     </div>
   );
 }
