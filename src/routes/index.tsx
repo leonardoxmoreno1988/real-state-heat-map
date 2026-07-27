@@ -570,10 +570,9 @@ function Index() {
       </header>
       )}
 
-      <main className="flex flex-1 flex-col overflow-hidden bg-[var(--water)]">
-        <div
-          className={`relative min-h-0 w-full ${selection ? "h-[45%] shrink-0 sm:h-1/2" : "flex-1"}`}
-        >
+      <main className="relative flex flex-1 flex-col overflow-hidden bg-[var(--water)]">
+        <div className="relative min-h-0 w-full flex-1">
+
         <TransformWrapper
 
           initialScale={1}
@@ -799,14 +798,17 @@ function Index() {
           </div>
         )}
 
-        <div className="pointer-events-auto absolute bottom-4 left-4 z-10 flex items-start gap-2">
-          <div className="flex flex-col gap-1.5 rounded-md border border-border/60 bg-card/85 px-3 py-2.5 text-[11px] shadow-none backdrop-blur-md">
-            <LegendRow color="var(--hot)" label="Hot · Seller's" />
-            <LegendRow color="var(--even)" label="Even · Neutral" />
-            <LegendRow color="var(--cold)" label="Cold · Buyer's" />
+        {!selection && (
+          <div className="pointer-events-auto absolute bottom-4 left-4 z-10 flex items-start gap-2">
+            <div className="flex flex-col gap-1.5 rounded-md border border-border/60 bg-card/85 px-3 py-2.5 text-[11px] shadow-none backdrop-blur-md">
+              <LegendRow color="var(--hot)" label="Hot · Seller's" />
+              <LegendRow color="var(--even)" label="Even · Neutral" />
+              <LegendRow color="var(--cold)" label="Cold · Buyer's" />
+            </div>
+            <DisclaimerInfo />
           </div>
-          <DisclaimerInfo />
-        </div>
+        )}
+
 
         <div className="pointer-events-none absolute bottom-3 right-4 z-10 text-[10px] tracking-tight text-slate-400/70">
           © 2026 Alta Forecast · Privacy · Terms
@@ -967,11 +969,12 @@ function FloatingCard({
   return (
     <aside
       aria-hidden={!open}
-      className="flex min-h-0 flex-1 justify-center overflow-hidden px-3 pb-3 pt-2"
+      className="pointer-events-none absolute inset-x-0 bottom-0 z-40 flex max-h-[58%] justify-center overflow-hidden px-3 pb-3 pt-10"
     >
       <div
-        className="flex h-full w-full max-w-[440px] flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-[0_20px_50px_-20px_rgba(15,23,42,0.3)]"
+        className="pointer-events-auto flex h-full w-full max-w-[440px] flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-[0_20px_50px_-20px_rgba(15,23,42,0.3)]"
       >
+
 
         {neighborhood && metrics && (
           <>
