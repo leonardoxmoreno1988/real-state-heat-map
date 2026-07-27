@@ -603,11 +603,11 @@ function Index() {
                           }}
                           d={sp.d}
                           fill={THERMAL_FILL[thermal]}
-                          stroke={THERMAL_STROKE[thermal]}
+                          stroke={isSelected ? "#2563EB" : THERMAL_STROKE[thermal]}
                           strokeOpacity={1}
                           strokeWidth={
                             isSelected
-                              ? 1.8
+                              ? 2.4
                               : isHovered
                                 ? 1.3
                                 : microStrokeWidthBase
