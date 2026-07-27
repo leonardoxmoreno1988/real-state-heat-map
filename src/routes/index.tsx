@@ -570,10 +570,9 @@ function Index() {
       </header>
       )}
 
-      <main className="flex flex-1 flex-col overflow-hidden bg-[var(--water)]">
-        <div
-          className={`relative min-h-0 w-full ${selection ? "h-[45%] shrink-0 sm:h-1/2" : "flex-1"}`}
-        >
+      <main className="relative flex flex-1 flex-col overflow-hidden bg-[var(--water)]">
+        <div className="relative min-h-0 w-full flex-1">
+
         <TransformWrapper
 
           initialScale={1}
