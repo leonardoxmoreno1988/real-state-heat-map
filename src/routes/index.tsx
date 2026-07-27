@@ -360,8 +360,6 @@ function Index() {
   const [globalSize, setGlobalSize] = useState<SizeType>("All");
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
-  const [localType, setLocalType] = useState<PropertyType>("All");
-  const [localSize, setLocalSize] = useState<SizeType>("All");
   const [zoom, setZoom] = useState(1);
   const [tooltip, setTooltip] = useState<{
     x: number;
@@ -389,23 +387,19 @@ function Index() {
       const subStates = n.subPaths.map((sp) => {
         const key = subKey(n.id, sp.name);
         const isSelected = key === selectedKey;
-        const t = isSelected ? localType : globalType;
-        const s = isSelected ? localSize : globalSize;
-        const m = subMetrics(n, sp, t, s);
+        const m = subMetrics(n, sp, globalType, globalSize);
         return { sp, key, isSelected, ...m };
       });
       return { n, subStates };
     });
-  }, [globalType, globalSize, selectedKey, localType, localSize]);
+  }, [globalType, globalSize, selectedKey]);
 
   const selectedMetrics = selection
-    ? subMetrics(selection.n, selection.sp, localType, localSize)
+    ? subMetrics(selection.n, selection.sp, globalType, globalSize)
     : null;
 
   const handleSelect = (nId: string, spName: string) => {
     setSelectedKey(subKey(nId, spName));
-    setLocalType(globalType);
-    setLocalSize(globalSize);
   };
 
   const microVisible = zoom >= ZOOM_THRESHOLD;
