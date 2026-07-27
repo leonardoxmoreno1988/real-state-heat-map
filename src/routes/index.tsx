@@ -1131,11 +1131,11 @@ function LeadCapture({ neighborhoodName }: { neighborhoodName: string }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-4 rounded-none border border-border/70 bg-secondary/40 p-3.5"
+      className="mt-4 rounded-md border border-border/70 bg-secondary/40 p-3.5"
     >
       <p className="text-[12.5px] leading-snug tracking-tight text-primary">
-        Sign me up if the heatmap changes in{" "}
-        <span className="font-semibold">{neighborhoodName}</span>.
+        Get notified of <span className="font-semibold">{neighborhoodName}</span>{" "}
+        temperature changes
       </p>
       <div className="mt-2.5 flex items-center gap-2">
         <input
@@ -1155,7 +1155,7 @@ function LeadCapture({ neighborhoodName }: { neighborhoodName: string }) {
           type="submit"
           className="h-10 shrink-0 rounded-md bg-primary px-4 text-[12.5px] font-semibold tracking-tight text-primary-foreground transition-transform hover:scale-[1.02] active:scale-[0.98]"
         >
-          Notify Me
+          Notify me
         </button>
       </div>
       {error && (
