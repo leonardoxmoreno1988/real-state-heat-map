@@ -1149,11 +1149,11 @@ function LeadCapture({ neighborhoodName }: { neighborhoodName: string }) {
           }}
           placeholder="you@email.com"
           aria-label="Email address"
-          className="h-10 flex-1 rounded-md border border-border bg-card px-4 text-[13px] text-primary placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15"
+          className="h-10 w-full min-w-0 flex-1 rounded-md border border-border bg-card px-3 text-[13px] text-primary placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15"
         />
         <button
           type="submit"
-          className="h-10 shrink-0 rounded-md bg-primary px-4 text-[12.5px] font-semibold tracking-tight text-primary-foreground transition-transform hover:scale-[1.02] active:scale-[0.98]"
+          className="h-10 shrink-0 whitespace-nowrap rounded-md bg-primary px-3 text-[12.5px] font-semibold tracking-tight text-primary-foreground transition-transform hover:scale-[1.02] active:scale-[0.98]"
         >
           Notify me
         </button>
