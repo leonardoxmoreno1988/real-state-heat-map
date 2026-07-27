@@ -276,12 +276,6 @@ const THERMAL_STROKE: Record<Thermal, string> = {
   even: "var(--even-stroke)",
   cold: "var(--cold-stroke)",
 };
-const THERMAL_LABEL: Record<Thermal, string> = {
-  hot: "Hot · Seller's",
-  even: "Even · Neutral",
-  cold: "Cold · Buyer's",
-};
-
 const ZOOM_THRESHOLD = 1.4; // Tier 2 begins — micro labels fade in
 const ZOOM_THRESHOLD_LG = 2.2; // Tier 3 begins — micro labels scale up
 
