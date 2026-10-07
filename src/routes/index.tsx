@@ -1,18 +1,26 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Building, Info } from "lucide-react";
+import { keepPreviousData, queryOptions, useQuery } from "@tanstack/react-query";
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Building, Info, Minus, Moon, Plus, RotateCcw, Sun } from "lucide-react";
 import {
   TransformWrapper,
   TransformComponent,
+  useControls,
 } from "react-zoom-pan-pinch";
+import type {
+  BedroomsParam,
+  HeatmapResponse,
+  MarketStatus,
+  PropertyTypeParam,
+} from "@/lib/heatmap-data";
 
 export const Route = createFileRoute("/")({
   component: Index,
 });
 
 type PropertyType = "All" | "Condo" | "Co-op" | "TH";
-type SizeType = "All" | "1 Bed" | "2 Bed" | "3 Bed";
-type Thermal = "hot" | "even" | "cold";
+type SizeType = "All" | "1 Bed" | "2 Bed" | "3 Bed" | "4+ Bed";
+type Thermal = MarketStatus;
 
 interface SubPath {
   d: string;
@@ -29,10 +37,6 @@ interface Neighborhood {
   subPaths: SubPath[];
   labelX: number;
   labelY: number;
-  base: number;
-  dom: number;
-  ppsf: number;
-  inContract: number;
 }
 
 const NEIGHBORHOODS: Neighborhood[] = [
@@ -50,10 +54,6 @@ const NEIGHBORHOODS: Neighborhood[] = [
     ],
     labelX: 155,
     labelY: 155,
-    base: 6.8,
-    dom: 112,
-    ppsf: 890,
-    inContract: 42,
   },
   {
     id: "uws",
@@ -65,10 +65,6 @@ const NEIGHBORHOODS: Neighborhood[] = [
     ],
     labelX: 137,
     labelY: 285,
-    base: 4.2,
-    dom: 68,
-    ppsf: 1680,
-    inContract: 78,
   },
   {
     id: "ues",
@@ -80,10 +76,6 @@ const NEIGHBORHOODS: Neighborhood[] = [
     ],
     labelX: 240,
     labelY: 305,
-    base: 5.4,
-    dom: 84,
-    ppsf: 1740,
-    inContract: 61,
   },
   {
     id: "midtown",
@@ -93,16 +85,13 @@ const NEIGHBORHOODS: Neighborhood[] = [
       { d: "M222.704 413.703H248.874V375.133H222.704V413.703Z", name: "Turtle Bay", cx: 236, cy: 394 },
       { d: "M222.444 448.203H182.494V386.983H164.514V418.223H152.094V375.233H222.454V448.203H222.444Z", name: "Midtown", cx: 200, cy: 410 },
       { d: "M164.494 418.173H151.904V429.833H182.434V386.903H164.494V418.173Z", name: "Theater District", cx: 172, cy: 408 },
-      { d: "M112.504 418.283V375.403H151.984V418.283H112.504Z", name: "Clinton", cx: 132, cy: 396 },
+      { d: "M112.504 418.283V375.403H151.984V418.283H112.504Z", name: "Hell's Kitchen", cx: 132, cy: 396 },
+      { d: "M110.164 449.903C108.194 426.783 110.984 419.183 112.634 418.263H151.964V449.903H110.164Z", name: "Hudson Yards", cx: 132, cy: 435 },
       { d: "M112.424 375.523V339.253H163.794V375.523H112.424Z", name: "Lincoln Square", cx: 138, cy: 357 },
       { d: "M201.624 339.103V375.183H267.664V339.163L267.694 339.103H201.624Z", name: "Lenox Hill", cx: 234, cy: 357 },
     ],
     labelX: 190,
     labelY: 395,
-    base: 5.8,
-    dom: 92,
-    ppsf: 1590,
-    inContract: 54,
   },
   {
     id: "chelsea",
@@ -115,10 +104,6 @@ const NEIGHBORHOODS: Neighborhood[] = [
     ],
     labelX: 165,
     labelY: 480,
-    base: 3.8,
-    dom: 54,
-    ppsf: 1980,
-    inContract: 89,
   },
   {
     id: "gramercy",
@@ -131,17 +116,12 @@ const NEIGHBORHOODS: Neighborhood[] = [
       { d: "M268.474 475.653H249.434V449.563H256.174C259.404 461.143 265.654 471.123 268.724 475.163C268.874 475.373 268.724 475.653 268.474 475.653Z", name: "Kips Bay", cx: 259, cy: 462 },
       { d: "M222.464 500.583H182.134V447.963H222.464V500.583Z", name: "Midtown South", cx: 202, cy: 474 },
       { d: "M248.924 450.003V413.673H222.704V450.003H248.924Z", name: "Murray Hill", cx: 236, cy: 431 },
-      { d: "M110.164 449.903C108.194 426.783 110.984 419.183 112.634 418.263H151.964V449.903H110.164Z", name: "Hell's Kitchen", cx: 132, cy: 435 },
-      { d: "M249.464 475.943H222.444V449.483H249.464V475.943Z", name: "Kips Bay", cx: 236, cy: 462 },
-      { d: "M249.254 475.593H268.764C268.764 477.133 273.684 482.713 280.494 486.193C289.874 490.983 292.354 497.823 292.414 500.643H249.254V475.593Z", name: "Stuyvesant", cx: 271, cy: 488 },
+      { d: "M249.464 475.943H222.444V449.483H249.464V475.943Z", name: "Rose Hill", cx: 236, cy: 462 },
+      { d: "M249.254 475.593H268.764C268.764 477.133 273.684 482.713 280.494 486.193C289.874 490.983 292.354 497.823 292.414 500.643H249.254V475.593Z", name: "Stuyvesant Town", cx: 271, cy: 488 },
       { d: "M222.444 475.943H249.464L249.254 500.643L222.464 500.583L222.444 475.943Z", name: "Gramercy Park", cx: 236, cy: 488 },
     ],
     labelX: 245,
     labelY: 450,
-    base: 5.1,
-    dom: 72,
-    ppsf: 1820,
-    inContract: 66,
   },
   {
     id: "soho",
@@ -152,15 +132,11 @@ const NEIGHBORHOODS: Neighborhood[] = [
       { d: "M227.114 562.963H210.954V539.853H226.244V540.803H227.114V562.963Z", name: "Little Italy", cx: 219, cy: 551 },
       { d: "M151.934 561.343L142.974 541.613L172.654 541.423L182.224 539.843H210.934V562.893H200.074V570.683L162.034 561.343H151.934Z", name: "SoHo", cx: 178, cy: 553 },
       { d: "M222.194 500.633H269.134V540.763H226.364L224.404 506.743L222.194 500.633Z", name: "East Village", cx: 246, cy: 520 },
-      { d: "M269.034 540.933V500.603H292.424C293.034 507.633 296.824 525.553 307.084 540.933H269.024H269.034Z", name: "ABC City", cx: 285, cy: 521 },
+      { d: "M269.034 540.933V500.603H292.424C293.034 507.633 296.824 525.553 307.084 540.933H269.024H269.034Z", name: "Alphabet City", cx: 285, cy: 521 },
       { d: "M200.074 562.903L227.114 562.963L227.364 590.903L199.944 590.723L200.074 562.903Z", name: "Chinatown", cx: 214, cy: 577 },
     ],
     labelX: 220,
     labelY: 545,
-    base: 4.6,
-    dom: 61,
-    ppsf: 2240,
-    inContract: 71,
   },
   {
     id: "fidi",
@@ -169,96 +145,137 @@ const NEIGHBORHOODS: Neighborhood[] = [
     subPaths: [
       { d: "M265.434 597.773L249.334 590.023L241.984 540.973H306.944C314.314 557.413 306.664 568.923 301.914 572.633L265.434 597.773Z", name: "Lower East Side", cx: 278, cy: 570 },
       { d: "M173.164 608.783L151.954 561.463L162.114 561.253L199.944 570.613V590.723L203.664 608.783H173.164Z", name: "Tribeca", cx: 180, cy: 587 },
-      { d: "M227.364 609.713H203.624L199.994 590.893H227.354V609.713H227.364Z", name: "Chinatown", cx: 214, cy: 600 },
+      { d: "M227.364 609.713H203.624L199.994 590.893H227.354V609.713H227.364Z", name: "Civic Center", cx: 214, cy: 600 },
       { d: "M245.044 618.333L227.534 609.753V580.053L265.384 598.053C257.914 604.263 248.714 614.163 245.044 618.333Z", name: "Two Bridges", cx: 246, cy: 600 },
-      { d: "M188.794 644.083L173.264 608.853L203.414 608.743L203.614 609.483H208.054L206.494 637.853L188.794 644.083Z", name: "White Hall", cx: 191, cy: 626 },
+      { d: "M188.794 644.083L173.264 608.853L203.414 608.743L203.614 609.483H208.054L206.494 637.853L188.794 644.083Z", name: "Battery Park City", cx: 191, cy: 626 },
       { d: "M223.924 648.793C212.854 649.583 207.634 641.823 206.414 637.833L208.144 609.733H227.454L244.944 618.643C239.354 633.213 228.604 644.813 223.924 648.803V648.793Z", name: "Wall Street", cx: 224, cy: 628 },
       { d: "M224.024 649.023C208.494 666.293 194.184 652.863 188.974 643.993L206.574 637.783C209.854 647.653 219.574 649.393 224.024 649.023Z", name: "Southern Tip", cx: 208, cy: 652 },
     ],
     labelX: 215,
     labelY: 615,
-    base: 7.2,
-    dom: 128,
-    ppsf: 1420,
-    inContract: 38,
   },
 ];
 
 const CENTRAL_PARK_PATH =
   "M163.464 375.253H201.704L201.534 238.432H163.464V375.253Z";
 
-const TYPE_FACTORS: Record<PropertyType, number> = {
-  All: 1,
-  Condo: 0.78,
-  "Co-op": 1.18,
-  TH: 0.92,
+const TYPE_OPTIONS = ["All", "Condo", "Co-op", "TH"] as const satisfies readonly PropertyType[];
+const SIZE_OPTIONS = [
+  "All",
+  "1 Bed",
+  "2 Bed",
+  "3 Bed",
+  "4+ Bed",
+] as const satisfies readonly SizeType[];
+
+// Query values for GET /api/heatmap (see src/routes/api/heatmap.ts)
+const TYPE_PARAM: Record<PropertyType, PropertyTypeParam> = {
+  All: "all",
+  Condo: "condo",
+  "Co-op": "co-op",
+  TH: "th",
 };
-const SIZE_FACTORS: Record<SizeType, number> = {
-  All: 1,
-  "1 Bed": 0.85,
-  "2 Bed": 1.0,
-  "3 Bed": 1.22,
+const SIZE_PARAM: Record<SizeType, BedroomsParam> = {
+  All: "all",
+  "1 Bed": "1",
+  "2 Bed": "2",
+  "3 Bed": "3",
+  "4+ Bed": "4+",
 };
 
-function thermalFor(supply: number): Thermal {
-  if (supply < 5) return "hot";
-  if (supply <= 6) return "even";
-  return "cold";
+interface Metrics {
+  supply: number;
+  dom: number;
+  ppsf: number;
+  inContract: number;
+  thermal: Thermal;
 }
 
-function computeMetrics(n: Neighborhood, type: PropertyType, size: SizeType) {
-  const factor = TYPE_FACTORS[type] * SIZE_FACTORS[size];
-  const supply = +(n.base * factor).toFixed(1);
-  const thermal = thermalFor(supply);
-  const idHash = n.id.charCodeAt(0) + n.id.charCodeAt(n.id.length - 1);
-  let dom: number;
-  if (thermal === "hot") {
-    dom = 20 + (idHash % 12);
-  } else if (thermal === "cold") {
-    dom = 82 + (idHash % 18);
-  } else {
-    dom = 55 + (idHash % 15);
-  }
-  const ppsf = Math.round(
-    n.ppsf *
-      (2 - SIZE_FACTORS[size]) *
-      (type === "Condo" ? 1.08 : type === "Co-op" ? 0.92 : 1),
+/** Fetch one filter combination; returns metrics keyed by sub-neighborhood name. */
+async function fetchHeatmap(type: PropertyType, size: SizeType): Promise<Map<string, Metrics>> {
+  const params = new URLSearchParams({
+    propertyType: TYPE_PARAM[type],
+    bedrooms: SIZE_PARAM[size],
+  });
+  const res = await fetch(`/api/heatmap?${params}`);
+  if (!res.ok) throw new Error(`GET /api/heatmap failed: ${res.status}`);
+  const data: HeatmapResponse = await res.json();
+  return new Map(
+    data.neighborhoods.map((r) => [
+      r.name,
+      {
+        supply: r.supply,
+        dom: r.avg_dom,
+        ppsf: r.price_sqft,
+        inContract: r.in_contract,
+        thermal: r.status,
+      },
+    ]),
   );
-  const inContract = Math.max(4, Math.round(n.inContract / factor));
-  return { supply, dom, ppsf, inContract, thermal };
 }
 
-function hashStr(s: string) {
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
-}
-
-function subMetrics(
-  n: Neighborhood,
-  sp: SubPath,
-  type: PropertyType,
-  size: SizeType,
-) {
-  const h = hashStr(n.id + "::" + sp.name);
-  const jitterSupply = ((h % 34) - 17) / 10; // -1.7..+1.7
-  const jitterPpsf = ((h >> 5) % 500) - 250;
-  const jitterContract = ((h >> 11) % 30) - 15;
-  const derived: Neighborhood = {
-    ...n,
-    id: `${n.id}--${sp.name}`,
-    base: Math.max(1.4, +(n.base + jitterSupply).toFixed(2)),
-    ppsf: Math.max(600, n.ppsf + jitterPpsf),
-    inContract: Math.max(4, n.inContract + jitterContract),
-  };
-  return computeMetrics(derived, type, size);
+function heatmapQuery(type: PropertyType, size: SizeType) {
+  return queryOptions({
+    queryKey: ["heatmap", type, size],
+    queryFn: () => fetchHeatmap(type, size),
+    staleTime: 5 * 60_000,
+    // Keep showing the previous combination while the next one loads.
+    placeholderData: keepPreviousData,
+  });
 }
 
 function subKey(nId: string, spName: string) {
   return `${nId}::${spName}`;
+}
+
+/** Unique per sub-path (unlike subKey); also used as the label's clipPath id. */
+function labelId(nId: string, idx: number) {
+  return `label-${nId}-${idx}`;
+}
+
+const LABEL_PAD = 1.5; // SVG units kept clear between label and polygon edge
+const CHAR_W = 0.6; // approx. glyph advance as a fraction of font size (semibold)
+const LINE_H = 1.15;
+const MIN_LABEL_PX = 8; // smallest on-screen label size before it's hidden
+
+interface Interior {
+  /** usable width/height around the label anchor, and the centered x */
+  w: number;
+  h: number;
+  cx: number;
+}
+
+/**
+ * Measure the polygon's actual interior around (cx, cy) by walking outward
+ * with isPointInFill. Bounding boxes overstate the room inside slanted or
+ * irregular shapes, which is what let labels bleed past their edges.
+ */
+function measureInterior(el: SVGPathElement, cx: number, cy: number): Interior {
+  const b = el.getBBox();
+  const bboxFallback = { w: b.width, h: b.height, cx };
+  if (typeof el.isPointInFill !== "function") return bboxFallback;
+  const inside = (x: number, y: number) => el.isPointInFill(new DOMPoint(x, y));
+  if (!inside(cx, cy)) return bboxFallback;
+
+  const STEP = 0.5;
+  const walk = (x: number, y: number, dx: number, dy: number) => {
+    let d = 0;
+    while (inside(x + dx * (d + STEP), y + dy * (d + STEP))) d += STEP;
+    return d;
+  };
+  const left = walk(cx, cy, -1, 0);
+  const right = walk(cx, cy, 1, 0);
+  const up = walk(cx, cy, 0, -1);
+  const down = walk(cx, cy, 0, 1);
+  // Two-line labels extend above/below the anchor; use the narrowest row.
+  const rowWidth = (y: number) => (inside(cx, y) ? walk(cx, y, -1, 0) + walk(cx, y, 1, 0) : 0);
+  const w = Math.min(left + right, rowWidth(cy - 3), rowWidth(cy + 3));
+  return {
+    w,
+    // Labels are vertically centered on cy, so only the tighter side counts.
+    h: Math.min(up, down) * 2,
+    cx: cx + (right - left) / 2,
+  };
 }
 
 const THERMAL_FILL: Record<Thermal, string> = {
@@ -276,9 +293,69 @@ const THERMAL_LABEL: Record<Thermal, string> = {
   even: "Even · Neutral",
   cold: "Cold · Buyer's",
 };
+// Border is drawn as an inset ring (box-shadow) so it never changes badge size;
+// it's transparent in light mode.
+const THERMAL_BADGE: Record<Thermal, { bg: string; color: string; ring: string }> = {
+  hot: {
+    bg: "var(--badge-hot-bg)",
+    color: "var(--badge-hot-fg)",
+    ring: "inset 0 0 0 1px var(--badge-hot-border)",
+  },
+  even: {
+    bg: "var(--badge-even-bg)",
+    color: "var(--badge-even-fg)",
+    ring: "inset 0 0 0 1px var(--badge-even-border)",
+  },
+  cold: {
+    bg: "var(--badge-cold-bg)",
+    color: "var(--badge-cold-fg)",
+    ring: "inset 0 0 0 1px var(--badge-cold-border)",
+  },
+};
+const HOVER_STROKE = "#28AEE3";
+const MIN_SCALE = 1;
+const MAX_SCALE = 5;
 
-const ZOOM_THRESHOLD = 1.4; // Tier 2 begins — micro labels fade in
-const ZOOM_THRESHOLD_LG = 2.2; // Tier 3 begins — micro labels scale up
+const VIEW_W = 383; // SVG viewBox size
+const VIEW_H = 674;
+
+/**
+ * Label tiers, like map zoom levels. Each sub-neighborhood label fades in once
+ * zoom reaches its tier's minimum (and only if it fits and doesn't collide).
+ * Tier 1 anchors stay labeled at every zoom: below ZOOM_THRESHOLD their group
+ * label (Harlem, UWS, Midtown…) stands in for them.
+ */
+type LabelTier = 1 | 2 | 3;
+const TIER_MIN_ZOOM: Record<LabelTier, number> = { 1: 1.4, 2: 1.7, 3: 2.2 };
+const ZOOM_THRESHOLD = TIER_MIN_ZOOM[1]; // group labels hand off to sub-labels here
+
+const LABEL_TIER: Record<string, LabelTier> = {
+  // Tier 1: anchors
+  Harlem: 1,
+  "Upper West Side": 1,
+  "Upper East Side": 1,
+  Midtown: 1,
+  Chelsea: 1,
+  SoHo: 1,
+  "Wall Street": 1, // FiDi's core
+  // Tier 3: micro neighborhoods
+  "Sutton Place": 3,
+  "Two Bridges": 3,
+  Bowery: 3,
+  "Little Italy": 3,
+  "Battery Park City": 3,
+  "Civic Center": 3,
+  "Rose Hill": 3,
+  Inwood: 3,
+  "Fort George": 3,
+  Beekman: 3,
+  "Tudor City": 3,
+  "Southern Tip": 3,
+};
+// Everything else (Yorkville, Lenox Hill, Hell's Kitchen, Tribeca…) is tier 2.
+const tierOf = (name: string): LabelTier => LABEL_TIER[name] ?? 2;
+
+const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
 
 function Segmented<T extends string>({
   options,
@@ -297,10 +374,14 @@ function Segmented<T extends string>({
     size === "sm"
       ? "px-3 py-1.5 text-xs"
       : size === "lg"
-        ? "px-4 py-2 text-sm"
+        ? fullWidth
+          ? "flex-1 px-2 py-2 text-sm"
+          : "px-4 py-2 text-sm"
         : "px-3.5 py-1.5 text-[13px]";
   return (
-    <div className={`${fullWidth ? "flex w-full" : "inline-flex"} rounded-md bg-secondary p-1`}>
+    <div
+      className={`${fullWidth ? "flex w-full" : "inline-flex"} rounded-2xl bg-secondary p-1 ${fullWidth ? "dark:bg-slate-800/90" : "dark:bg-slate-800/80"}`}
+    >
 
       {options.map((opt) => {
         const active = opt === value;
@@ -309,10 +390,10 @@ function Segmented<T extends string>({
             key={opt}
             type="button"
             onClick={() => onChange(opt)}
-            className={`${pad} rounded-md font-medium tracking-tight transition-all duration-200 ${
+            className={`${pad} whitespace-nowrap rounded-xl tracking-tight transition-all duration-200 ${
               active
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
+                ? "bg-primary font-semibold text-primary-foreground shadow-sm dark:bg-white dark:text-slate-900"
+                : "font-medium text-muted-foreground hover:text-foreground dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white"
             }`}
           >
             {opt}
@@ -327,14 +408,21 @@ function Index() {
   const [globalType, setGlobalType] = useState<PropertyType>("All");
   const [globalSize, setGlobalSize] = useState<SizeType>("All");
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
-  const [hoveredKey, setHoveredKey] = useState<string | null>(null);
+  // Track the hovered path's geometry too: sub-path keys aren't unique
+  // (e.g. Kips Bay), so the highlight overlay can't be derived from the key.
+  const [hovered, setHovered] = useState<{ key: string; d: string } | null>(null);
+  const hoveredKey = hovered?.key ?? null;
+  // Geometry of the selected path, for the selection outline overlay (same
+  // reason as `hovered`: keys aren't unique, so it can't be looked up by key).
+  const [selectedD, setSelectedD] = useState<string | null>(null);
   const [localType, setLocalType] = useState<PropertyType>("All");
   const [localSize, setLocalSize] = useState<SizeType>("All");
   const [zoom, setZoom] = useState(1);
   const [tooltip, setTooltip] = useState<{
     x: number;
     y: number;
-    label: string;
+    name: string;
+    thermal: Thermal | null;
   } | null>(null);
   // Drag vs click discrimination: track pointer-down origin and suppress
   // the synthetic click if the pointer moved past the threshold (pan).
@@ -352,54 +440,69 @@ function Index() {
     return { n, sp };
   }, [selectedKey]);
 
+  // Map colors come from the header filters; the selected polygon follows the
+  // detail card's own filters (same cache entry when they match).
+  const globalQuery = useQuery(heatmapQuery(globalType, globalSize));
+  const localQuery = useQuery({
+    ...heatmapQuery(localType, localSize),
+    enabled: selectedKey !== null,
+  });
+  // "No data yet" counts as syncing so the server render (query not started)
+  // and the first client render (fetch in flight) agree during hydration.
+  const apiState: ApiState =
+    globalQuery.isError && !globalQuery.data
+      ? "error"
+      : !globalQuery.data || globalQuery.isFetching || localQuery.isFetching
+        ? "syncing"
+        : "live";
+  const mapLoading = !globalQuery.data && !globalQuery.isError;
+
   const polygonState = useMemo(() => {
     return NEIGHBORHOODS.map((n) => {
       const subStates = n.subPaths.map((sp) => {
         const key = subKey(n.id, sp.name);
         const isSelected = key === selectedKey;
-        const t = isSelected ? localType : globalType;
-        const s = isSelected ? localSize : globalSize;
-        const m = subMetrics(n, sp, t, s);
-        return { sp, key, isSelected, ...m };
+        const data = isSelected ? localQuery.data : globalQuery.data;
+        // null until the API responds: rendered as a neutral skeleton
+        const thermal: Thermal | null = data?.get(sp.name)?.thermal ?? null;
+        return { sp, key, isSelected, thermal };
       });
       return { n, subStates };
     });
-  }, [globalType, globalSize, selectedKey, localType, localSize]);
+  }, [globalQuery.data, localQuery.data, selectedKey]);
 
-  const selectedMetrics = selection
-    ? subMetrics(selection.n, selection.sp, localType, localSize)
-    : null;
+  const selectedMetrics = selection ? (localQuery.data?.get(selection.sp.name) ?? null) : null;
 
-  const handleSelect = (nId: string, spName: string) => {
-    setSelectedKey(subKey(nId, spName));
+  const handleSelect = (nId: string, sp: SubPath) => {
+    setSelectedKey(subKey(nId, sp.name));
+    setSelectedD(sp.d);
+    setTooltip(null);
     setLocalType(globalType);
     setLocalSize(globalSize);
   };
 
   const microVisible = zoom >= ZOOM_THRESHOLD;
-  const microStrokeWidthBase = 0.7;
+  // CSS var so the base border width can differ per theme (0.7 light, 1 dark)
+  const microStrokeWidthBase = "var(--map-stroke-width)";
 
-  // Measure each sub-path bbox once mounted so we can size labels to fit
-  // and detect collisions between neighboring label rects.
+  // Measure each sub-path once mounted so we can size labels to fit and
+  // detect collisions between neighboring label rects. Keyed by label id
+  // (not subKey) because sub-path names aren't unique (e.g. Kips Bay).
   const pathRefs = useRef<Record<string, SVGPathElement | null>>({});
-  const [bboxes, setBboxes] = useState<
-    Record<string, { w: number; h: number; cx: number; cy: number }>
-  >({});
+  const [bboxes, setBboxes] = useState<Record<string, Interior>>({});
   useLayoutEffect(() => {
-    const next: Record<string, { w: number; h: number; cx: number; cy: number }> = {};
-    for (const [k, el] of Object.entries(pathRefs.current)) {
-      if (!el) continue;
-      try {
-        const b = el.getBBox();
-        next[k] = {
-          w: b.width,
-          h: b.height,
-          cx: b.x + b.width / 2,
-          cy: b.y + b.height / 2,
-        };
-      } catch {
-        /* ignore */
-      }
+    const next: Record<string, Interior> = {};
+    for (const n of NEIGHBORHOODS) {
+      n.subPaths.forEach((sp, idx) => {
+        const id = labelId(n.id, idx);
+        const el = pathRefs.current[id];
+        if (!el) return;
+        try {
+          next[id] = measureInterior(el, sp.cx, sp.cy);
+        } catch {
+          /* ignore */
+        }
+      });
     }
     setBboxes(next);
   }, []);
@@ -408,6 +511,21 @@ function Index() {
   // considering polygon area, textual length, and pairwise collisions at
   // the current zoom level. Smaller/lower-priority labels are hidden when
   // they overlap larger neighbors, and re-appear as zoom shrinks label rects.
+  // Real on-screen pixels per SVG unit at zoom 1 (preserveAspectRatio="meet").
+  // ResizeObserver reports the untransformed layout box, so zoom is applied separately.
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [viewScale, setViewScale] = useState(1);
+  useEffect(() => {
+    const el = svgRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      if (width && height) setViewScale(Math.min(width / VIEW_W, height / VIEW_H));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   const labelLayouts = useMemo(() => {
     type Layout = {
       key: string;
@@ -418,66 +536,69 @@ function Index() {
       width: number;
       height: number;
       area: number;
+      tier: LabelTier;
       visible: boolean;
     };
     const z = Math.max(zoom, 1);
+    const pxPerUnit = viewScale * z;
     const items: Layout[] = [];
     for (const n of NEIGHBORHOODS) {
-      for (const sp of n.subPaths) {
-        const key = subKey(n.id, sp.name);
+      n.subPaths.forEach((sp, idx) => {
+        const key = labelId(n.id, idx);
         const bb = bboxes[key];
         const polyW = bb?.w ?? 40;
         const polyH = bb?.h ?? 40;
         const area = polyW * polyH;
         const isSmall = area < 900;
-        // 3-tier target visual pixel size (SVG is inside a scaled wrapper,
-        // so we divide by z to keep on-screen size predictable per tier).
-        // Tier 2 (1.4x–2.2x): compact, crisp. Tier 3 (>2.2x): comfortable read.
-        const tier3 = z >= ZOOM_THRESHOLD_LG;
-        const targetPx = tier3
-          ? (isSmall ? 13 : 15)
-          : (isSmall ? 10 : 11.5);
-        let fontSize = Math.max(5.5, targetPx / z);
+        const tier = tierOf(sp.name);
+        // On-screen size grows continuously with zoom (no steps between
+        // levels), clamped, then converted to SVG units via the real scale.
+        const targetPx = isSmall
+          ? clamp(9 + (z - ZOOM_THRESHOLD) * 3, 9, 13)
+          : clamp(10 + (z - ZOOM_THRESHOLD) * 3.5, 10, 15);
+        let fontSize = targetPx / pxPerUnit;
+
+        // Usable interior after padding on every side.
+        const fitW = polyW - LABEL_PAD * 2;
+        const fitH = polyH - LABEL_PAD * 2;
 
         // Try single line; if too wide for polygon, wrap around the middle.
         const words = sp.name.split(" ");
-        const singleWidth = sp.name.length * fontSize * 0.55;
+        const singleWidth = sp.name.length * fontSize * CHAR_W;
         let lines: string[] = [sp.name];
-        const fitBudget = polyW * 0.92;
-        if (words.length > 1 && singleWidth > fitBudget) {
+        if (words.length > 1 && singleWidth > fitW) {
           const mid = Math.ceil(words.length / 2);
           lines = [
             words.slice(0, mid).join(" "),
             words.slice(mid).join(" "),
           ];
         }
-        // If wrapped lines still overflow, nudge font down a touch.
+        // Shrink to fit both the interior width and height.
         const longest = Math.max(...lines.map((l) => l.length));
-        if (longest * fontSize * 0.55 > fitBudget && fontSize > 6) {
-          fontSize = Math.max(
-            5.5,
-            (fitBudget / (longest * 0.55)) as number,
-          );
-        }
-        const width = longest * fontSize * 0.55;
-        const height = lines.length * fontSize * 1.15;
+        fontSize = Math.min(fontSize, fitW / (longest * CHAR_W), fitH / (lines.length * LINE_H));
+        const width = longest * fontSize * CHAR_W;
+        const height = lines.length * fontSize * LINE_H;
         items.push({
           key,
-          cx: sp.cx,
+          cx: bb?.cx ?? sp.cx,
           cy: sp.cy,
           fontSize,
           lines,
           width,
           height,
           area,
-          visible: true,
+          tier,
+          // Hidden below its tier's zoom, or when it would have to shrink
+          // below a readable size to fit (rather than overflow the polygon).
+          visible: z >= TIER_MIN_ZOOM[tier] && fontSize * pxPerUnit >= MIN_LABEL_PX,
         });
-      }
+      });
     }
-    // Greedy collision resolution: larger polygon wins, smaller hides.
-    items.sort((a, b) => b.area - a.area);
+    // Greedy collision resolution: lower tier wins, then the larger polygon.
+    items.sort((a, b) => a.tier - b.tier || b.area - a.area);
     const placed: Layout[] = [];
     for (const item of items) {
+      if (!item.visible) continue;
       const pad = 1.5;
       const ax0 = item.cx - item.width / 2 - pad;
       const ax1 = item.cx + item.width / 2 + pad;
@@ -503,38 +624,46 @@ function Index() {
     const map: Record<string, Layout> = {};
     for (const it of items) map[it.key] = it;
     return map;
-  }, [bboxes, zoom]);
+  }, [bboxes, zoom, viewScale]);
 
   return (
     <div className="flex h-[100dvh] flex-col overflow-hidden bg-background text-foreground">
-      <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/80 dark:backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-5">
           <div className="flex items-center gap-2.5">
-            <LogoA />
-            <span className="text-[17px] font-semibold tracking-tight text-primary">
-              Alta<span className="text-muted-foreground font-normal"> Forecast</span>
+            <span className="relative">
+              <LogoMark />
+              {/* Mobile: status dot on the logo (no room for the full badge) */}
+              <ApiStatusDot state={apiState} className="absolute -right-0.5 -top-0.5 sm:hidden" />
             </span>
+            <span className="text-[17px] font-semibold tracking-tight text-primary">
+              Real Estate<span className="text-muted-foreground font-normal"> Heatmap</span>
+            </span>
+            <ApiStatusBadge state={apiState} />
           </div>
-          <button
-            type="button"
-            className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:bg-secondary hover:text-primary"
-            aria-label="Change borough"
-          >
-            Manhattan
-            <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden>
-              <path d="M2.5 4.5L6 8l3.5-3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:bg-secondary hover:text-primary"
+              aria-label="Change borough"
+            >
+              Manhattan
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden>
+                <path d="M2.5 4.5L6 8l3.5-3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+            <ThemeToggle />
+          </div>
         </div>
 
         <div className="mx-auto flex max-w-3xl flex-col gap-4 px-5 pb-4 pt-2 sm:flex-row sm:items-center sm:justify-start">
           <Segmented
-            options={["All", "Condo", "Co-op", "TH"] as const}
+            options={TYPE_OPTIONS}
             value={globalType}
             onChange={setGlobalType}
           />
           <Segmented
-            options={["All", "1 Bed", "2 Bed", "3 Bed"] as const}
+            options={SIZE_OPTIONS}
             value={globalSize}
             onChange={setGlobalSize}
           />
@@ -542,10 +671,18 @@ function Index() {
       </header>
 
       <main className="relative flex-1 overflow-hidden bg-[var(--water)]">
+        {/* Indeterminate progress bar while /api/heatmap requests are in flight */}
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 z-20 h-0.5 overflow-hidden">
+          <div
+            className={`h-full w-1/3 bg-[#28AEE3] transition-opacity duration-300 ${
+              apiState === "syncing" ? "animate-api-progress opacity-100" : "opacity-0"
+            }`}
+          />
+        </div>
         <TransformWrapper
           initialScale={1}
-          minScale={1}
-          maxScale={5}
+          minScale={MIN_SCALE}
+          maxScale={MAX_SCALE}
           wheel={{ step: 0.15 }}
           doubleClick={{ mode: "toggle", step: 1.6 }}
           pinch={{ step: 8 }}
@@ -559,36 +696,46 @@ function Index() {
           >
             <div className="relative mx-auto flex h-full w-full max-w-3xl items-center justify-center px-4 py-3">
               <svg
-                viewBox="0 0 383 674"
+                ref={svgRef}
+                viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
                 preserveAspectRatio="xMidYMid meet"
-                className="mx-auto h-full max-h-full w-auto max-w-full drop-shadow-[0_20px_40px_rgba(15,23,42,0.06)]"
+                className={`mx-auto h-full max-h-full w-auto max-w-full drop-shadow-[0_10px_15px_rgba(0,0,0,0.06)] ${
+                  mapLoading ? "animate-pulse" : ""
+                }`}
+                aria-busy={mapLoading}
                 role="img"
                 aria-label="Manhattan neighborhoods heatmap"
               >
+
+                {/* Per-polygon clip paths keep micro labels inside their shape */}
+                <defs>
+                  {NEIGHBORHOODS.flatMap((n) =>
+                    n.subPaths.map((sp, idx) => (
+                      <clipPath key={labelId(n.id, idx)} id={labelId(n.id, idx)}>
+                        <path d={sp.d} />
+                      </clipPath>
+                    )),
+                  )}
+                </defs>
                 {polygonState.map(({ n, subStates }) => (
                   <g key={n.id}>
-                    {subStates.map(({ sp, key, isSelected, thermal }) => {
+                    {subStates.map(({ sp, key, isSelected, thermal }, idx) => {
                       const isHovered = hoveredKey === key;
                       return (
                         <path
                           key={key}
                           ref={(el) => {
-                            pathRefs.current[key] = el;
+                            pathRefs.current[labelId(n.id, idx)] = el;
                           }}
                           d={sp.d}
-                          fill={THERMAL_FILL[thermal]}
-                          stroke={THERMAL_STROKE[thermal]}
+                          className="map-path"
+                          fill={THERMAL_FILL[thermal ?? "even"]}
+                          stroke={THERMAL_STROKE[thermal ?? "even"]}
                           strokeOpacity={1}
-                          strokeWidth={
-                            isSelected
-                              ? 1.8
-                              : isHovered
-                                ? 1.3
-                                : microStrokeWidthBase
-                          }
-                          strokeLinejoin="round"
                           vectorEffect="non-scaling-stroke"
                           style={{
+                            // Base width comes from a CSS var so it can differ per theme
+                            strokeWidth: isSelected ? 1.8 : isHovered ? 1.3 : microStrokeWidthBase,
                             cursor: "pointer",
                             transition:
                               "fill 400ms ease, stroke 300ms ease, stroke-width 180ms ease, opacity 250ms ease, filter 180ms ease",
@@ -620,84 +767,80 @@ function Index() {
                               return;
                             }
                             pointerDownRef.current = null;
-                            handleSelect(n.id, sp.name);
+                            handleSelect(n.id, sp);
                           }}
-                          onMouseEnter={() => setHoveredKey(key)}
+                          onMouseEnter={() => setHovered({ key, d: sp.d })}
                           onMouseLeave={() => {
-                            setHoveredKey((k) => (k === key ? null : k));
+                            setHovered((h) => (h?.d === sp.d ? null : h));
                             setTooltip(null);
                           }}
                           onMouseMove={(e) =>
                             setTooltip({
                               x: e.clientX,
                               y: e.clientY,
-                              label: sp.name,
+                              name: sp.name,
+                              thermal,
                             })
                           }
-                          onTouchStart={() => setHoveredKey(key)}
-                        >
-                          <title>{sp.name}</title>
-                        </path>
+                          onTouchStart={() => setHovered({ key, d: sp.d })}
+                        />
                       );
                     })}
 
-                    {/* Macro label (Tier 1) */}
+                    {/* Group label: stands in for tier-1 anchors below ZOOM_THRESHOLD */}
                     <text
                       x={n.labelX}
                       y={n.labelY}
                       textAnchor="middle"
                       dominantBaseline="central"
-                      className="neighborhood-label"
+                      className="neighborhood-label map-label map-fade"
+                      data-visible={!microVisible}
                       letterSpacing="0.06em"
-                      fill="#183659"
-                      style={{
-                        pointerEvents: "none",
-                        opacity: microVisible ? 0 : 1,
-                        transition: "opacity 250ms ease",
-                      }}
+                      fill="var(--map-label)"
+                      style={{ pointerEvents: "none" }}
                     >
                       {n.shortName}
                     </text>
 
-                    {/* Micro labels (Tier 2) — collision-managed, per-polygon fit */}
-                    {n.subPaths.map((sp) => {
-                      const key = subKey(n.id, sp.name);
-                      const layout = labelLayouts[key];
+                    {/* Sub-neighborhood labels — tiered, collision-managed, fit to their polygon */}
+                    {n.subPaths.map((sp, idx) => {
+                      const id = labelId(n.id, idx);
+                      const layout = labelLayouts[id];
                       if (!layout) {
                         return (
                           <text
-                            key={`micro-${sp.name}`}
+                            key={`micro-${id}`}
                             x={sp.cx}
                             y={sp.cy}
                             style={{ opacity: 0, pointerEvents: "none" }}
                           />
                         );
                       }
-                      const { fontSize, lines, visible } = layout;
-                      const lineHeight = fontSize * 1.15;
+                      const { cx, fontSize, lines, visible } = layout;
+                      const lineHeight = fontSize * LINE_H;
                       const startDy = -((lines.length - 1) * lineHeight) / 2;
                       return (
                         <text
-                          key={`micro-${sp.name}`}
-                          x={sp.cx}
+                          key={`micro-${id}`}
+                          x={cx}
                           y={sp.cy}
+                          clipPath={`url(#${id})`}
+                          className="map-label map-fade"
+                          data-visible={visible}
                           textAnchor="middle"
                           dominantBaseline="central"
-                          fill="#183659"
+                          fill="var(--map-label)"
                           style={{
                             pointerEvents: "none",
-                            opacity: microVisible && visible ? 1 : 0,
-                            transition:
-                              "opacity 250ms ease, font-size 180ms ease",
+                            // Follows zoom continuously; no font-size transition (it lagged and swam)
                             fontSize: `${fontSize}px`,
-                            fontWeight: 600,
                             letterSpacing: "0.01em",
                           }}
                         >
                           {lines.map((line, i) => (
                             <tspan
                               key={i}
-                              x={sp.cx}
+                              x={cx}
                               dy={i === 0 ? startDy : lineHeight}
                             >
                               {line}
@@ -712,6 +855,7 @@ function Index() {
                 {/* Central Park */}
                 <path
                   d={CENTRAL_PARK_PATH}
+                  className="map-path"
                   fill="var(--park)"
                   stroke="var(--park-stroke)"
                   strokeWidth="0.8"
@@ -724,7 +868,7 @@ function Index() {
                   textAnchor="middle"
                   dominantBaseline="central"
                   className="park-label"
-                  fill="var(--park-stroke)"
+                  fill="var(--park-label, var(--park-stroke))"
                   style={{
                     pointerEvents: "none",
                     fontSize: microVisible ? `${Math.max(5.5, 9 / Math.max(zoom, 1))}px` : undefined,
@@ -739,7 +883,7 @@ function Index() {
                   textAnchor="middle"
                   dominantBaseline="central"
                   className="park-label"
-                  fill="var(--park-stroke)"
+                  fill="var(--park-label, var(--park-stroke))"
                   style={{
                     pointerEvents: "none",
                     fontSize: microVisible ? `${Math.max(5.5, 9 / Math.max(zoom, 1))}px` : undefined,
@@ -748,35 +892,58 @@ function Index() {
                 >
                   PARK
                 </text>
+
+                {/* Selection outline — drawn on top so neighboring strokes don't cover it.
+                    Only themes that set --map-selected-stroke (dark) show it. */}
+                {selectedKey && selectedD && (
+                  <path
+                    d={selectedD}
+                    className="map-path"
+                    fill="none"
+                    stroke="var(--map-selected-stroke, none)"
+                    vectorEffect="non-scaling-stroke"
+                    style={{
+                      strokeWidth: "var(--map-selected-width, 0)",
+                      pointerEvents: "none",
+                    }}
+                  />
+                )}
+
+                {/* Hover highlight — drawn last so neighboring strokes don't cover it */}
+                {hovered && hovered.key !== selectedKey && (
+                  <path
+                    d={hovered.d}
+                    className="map-path"
+                    fill="none"
+                    stroke={HOVER_STROKE}
+                    strokeWidth={1.6}
+                    vectorEffect="non-scaling-stroke"
+                    style={{ pointerEvents: "none" }}
+                  />
+                )}
               </svg>
             </div>
           </TransformComponent>
+          <ZoomControls zoom={zoom} />
         </TransformWrapper>
 
         {/* Tooltip */}
-        {tooltip && (
-          <div
-            className="pointer-events-none fixed z-20 rounded-md bg-primary px-2.5 py-1 text-[11px] font-semibold tracking-tight text-primary-foreground shadow-lg"
-            style={{
-              left: tooltip.x + 12,
-              top: tooltip.y + 12,
-            }}
-          >
-            {tooltip.label}
-          </div>
-        )}
+        {tooltip && <MapTooltip {...tooltip} />}
 
-        <div className="pointer-events-auto absolute bottom-4 left-4 z-10 flex items-start gap-2">
-          <div className="flex flex-col gap-1.5 rounded-md border border-border/60 bg-card/85 px-3 py-2.5 text-[11px] shadow-none backdrop-blur-md">
-            <LegendRow color="var(--hot)" label="Hot · Seller's" />
-            <LegendRow color="var(--even)" label="Even · Neutral" />
-            <LegendRow color="var(--cold)" label="Cold · Buyer's" />
-          </div>
+        {/* Positioned card: the (i) icon sits in its top-right corner and the
+            disclaimer tooltip anchors to its left edge. pr-8 keeps rows clear of the icon. */}
+        <div className="pointer-events-auto absolute bottom-12 left-4 z-10 flex flex-col gap-1.5 rounded-md border sm:bottom-4 border-border/60 bg-card/85 py-2.5 pl-3 pr-8 text-xs shadow-none backdrop-blur-md">
+          <LegendRow color="var(--hot)" label="Hot · Seller's" />
+          <LegendRow color="var(--even)" label="Even · Neutral" />
+          <LegendRow color="var(--cold)" label="Cold · Buyer's" />
           <DisclaimerInfo />
         </div>
 
-        <div className="pointer-events-none absolute bottom-3 right-4 z-10 text-[10px] tracking-tight text-slate-400/70">
-          © 2026 Alta Forecast · Privacy · Terms
+        {/* Bottom-right under the zoom stack, right edges aligned (right-4). Mobile: bottom-3, with
+            legend + zoom stack above at bottom-12. sm+: bottom-4, on the legend's baseline; zoom
+            stack moves up to bottom-14. */}
+        <div className="pointer-events-none absolute bottom-3 right-4 z-20 whitespace-nowrap rounded-full border border-slate-200/60 bg-white/85 px-3 py-1 text-[10px] font-medium text-slate-600 shadow-sm backdrop-blur-md sm:text-[11px] dark:border-slate-700/50 dark:bg-slate-800/85 dark:text-slate-300 sm:bottom-4">
+          © 2026 Real Estate Heatmap · Privacy · Terms
         </div>
 
       </main>
@@ -787,6 +954,7 @@ function Index() {
         neighborhood={selection?.n ?? null}
         displayName={selection?.sp.name ?? null}
         metrics={selectedMetrics}
+        updating={localQuery.isFetching}
         localType={localType}
         localSize={localSize}
         setLocalType={setLocalType}
@@ -797,6 +965,176 @@ function Index() {
 }
 
 
+function ZoomControls({ zoom }: { zoom: number }) {
+  const { zoomIn, zoomOut, resetTransform } = useControls();
+  const btn =
+    "flex h-8 w-8 items-center justify-center text-muted-foreground transition-colors hover:bg-secondary hover:text-primary disabled:pointer-events-none disabled:opacity-40";
+  return (
+    <div className="pointer-events-auto absolute bottom-12 right-4 z-10 flex flex-col overflow-hidden rounded-md border border-border/60 bg-card/85 backdrop-blur-md sm:bottom-14">
+      <button
+        type="button"
+        aria-label="Zoom in"
+        onClick={() => zoomIn(0.5)}
+        disabled={zoom >= MAX_SCALE - 0.01}
+        className={btn}
+      >
+        <Plus size={15} strokeWidth={1.8} />
+      </button>
+      <button
+        type="button"
+        aria-label="Zoom out"
+        onClick={() => zoomOut(0.5)}
+        disabled={zoom <= MIN_SCALE + 0.01}
+        className={`${btn} border-t border-border/60`}
+      >
+        <Minus size={15} strokeWidth={1.8} />
+      </button>
+      <button
+        type="button"
+        aria-label="Reset view"
+        onClick={() => resetTransform()}
+        className={`${btn} border-t border-border/60`}
+      >
+        <RotateCcw size={14} strokeWidth={1.8} />
+      </button>
+    </div>
+  );
+}
+
+function MapTooltip({
+  x,
+  y,
+  name,
+  thermal,
+}: {
+  x: number;
+  y: number;
+  name: string;
+  thermal: Thermal | null;
+}) {
+  const badge = thermal ? THERMAL_BADGE[thermal] : null;
+  // Offset clears the ~12×19px arrow cursor; flip to the opposite side near
+  // the right/bottom edges so the box never clips off-screen.
+  const OFFSET_X = 16;
+  const OFFSET_Y = 20;
+  const vw = typeof window !== "undefined" ? window.innerWidth : Infinity;
+  const vh = typeof window !== "undefined" ? window.innerHeight : Infinity;
+  const flipX = x > vw - 200;
+  const flipY = y > vh - 80;
+  return (
+    <div
+      role="tooltip"
+      className="pointer-events-none fixed z-[35] flex select-none flex-col items-start gap-1 rounded-md border border-border/60 bg-card px-2.5 py-1.5 shadow-lg"
+      style={{
+        left: flipX ? undefined : x + OFFSET_X,
+        right: flipX ? vw - x + OFFSET_X : undefined,
+        top: flipY ? undefined : y + OFFSET_Y,
+        bottom: flipY ? vh - y + OFFSET_Y : undefined,
+      }}
+    >
+      <span className="text-[12px] font-semibold tracking-tight text-primary">{name}</span>
+      {thermal && badge ? (
+        <span
+          className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium"
+          style={{ backgroundColor: badge.bg, color: badge.color, boxShadow: badge.ring }}
+        >
+          <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: badge.color }} />
+          {THERMAL_LABEL[thermal]}
+        </span>
+      ) : (
+        <span className="text-xs text-muted-foreground">Loading market data…</span>
+      )}
+    </div>
+  );
+}
+
+type ApiState = "live" | "syncing" | "error";
+
+const API_STATE_LABEL: Record<ApiState, string> = {
+  live: "API Connected",
+  syncing: "Syncing…",
+  error: "API Offline",
+};
+
+function ApiStatusDot({ state, className = "" }: { state: ApiState; className?: string }) {
+  const color = state === "error" ? "bg-red-500" : state === "syncing" ? "bg-amber-400" : "bg-emerald-500";
+  return (
+    <span className={`flex h-2 w-2 ${className}`} aria-hidden>
+      {state === "live" && (
+        <span className="absolute inline-flex h-2 w-2 animate-ping rounded-full bg-emerald-400 opacity-60" />
+      )}
+      <span className={`relative inline-flex h-2 w-2 rounded-full ${color}`} />
+    </span>
+  );
+}
+
+/** Header badge reflecting /api/heatmap request state. Hidden below sm (see ApiStatusDot). */
+function ApiStatusBadge({ state }: { state: ApiState }) {
+  return (
+    <span
+      title="Market data served by GET /api/heatmap (modeled estimates)"
+      className={`hidden items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset sm:inline-flex ${
+        state === "error"
+          ? "bg-red-50 text-red-700 ring-red-200 dark:bg-red-950/60 dark:text-red-300 dark:ring-red-800/50"
+          : "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:ring-emerald-800/50"
+      }`}
+    >
+      <ApiStatusDot state={state} className="relative" />
+      {API_STATE_LABEL[state]}
+    </span>
+  );
+}
+
+const THEME_KEY = "theme"; // keep in sync with THEME_INIT_SCRIPT in __root.tsx
+
+function ThemeToggle() {
+  // null until mounted: the server can't know the theme. Icons switch via the
+  // dark: variant instead of state, so there's no hydration mismatch or flicker.
+  const [isDark, setIsDark] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    setIsDark(root.classList.contains("dark"));
+    // Follow OS changes until the user picks a theme explicitly.
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const onChange = (e: MediaQueryListEvent) => {
+      try {
+        if (localStorage.getItem(THEME_KEY)) return;
+      } catch {
+        /* storage unavailable: keep following the OS */
+      }
+      root.classList.toggle("dark", e.matches);
+      setIsDark(e.matches);
+    };
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
+  const toggle = () => {
+    const next = !document.documentElement.classList.contains("dark");
+    document.documentElement.classList.toggle("dark", next);
+    try {
+      localStorage.setItem(THEME_KEY, next ? "dark" : "light");
+    } catch {
+      /* private mode etc.: the choice just won't persist */
+    }
+    setIsDark(next);
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      aria-label="Dark mode"
+      aria-pressed={isDark ?? undefined}
+      className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-primary"
+    >
+      <Moon size={16} strokeWidth={1.8} className="dark:hidden" />
+      <Sun size={16} strokeWidth={1.8} className="hidden dark:block" />
+    </button>
+  );
+}
+
 function LegendRow({ color, label }: { color: string; label: string }) {
   return (
     <div className="flex items-center gap-2">
@@ -805,61 +1143,65 @@ function LegendRow({ color, label }: { color: string; label: string }) {
         style={{ backgroundColor: color }}
         aria-hidden
       />
-      <span className="text-muted-foreground">{label}</span>
+      <span className="text-slate-600 dark:text-slate-300">{label}</span>
     </div>
   );
 }
 
+/** Legend (i) icon. Renders its tooltip against the nearest positioned ancestor (the legend card). */
 function DisclaimerInfo() {
   const [open, setOpen] = useState(false);
+  const tooltipId = useId();
   return (
-    <div
-      className="relative"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
-    >
+    <>
       <button
         type="button"
         aria-label="Data disclaimer"
+        aria-describedby={open ? tooltipId : undefined}
         onClick={() => setOpen((v) => !v)}
-        className="flex h-7 w-7 items-center justify-center rounded-md border border-border/60 bg-card/85 text-muted-foreground shadow-none backdrop-blur-md transition-colors hover:text-foreground"
+        // Hover only for real mice; on touch the emulated enter + click
+        // would open and immediately toggle closed.
+        onPointerEnter={(e) => e.pointerType === "mouse" && setOpen(true)}
+        onPointerLeave={(e) => e.pointerType === "mouse" && setOpen(false)}
+        onBlur={() => setOpen(false)}
+        // right-1/top-1 + p-1 puts the glyph at top-2/right-2 with a larger hit area
+        className="absolute right-1 top-1 cursor-pointer rounded-full p-1 text-slate-400 transition-colors hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
       >
         <Info size={14} strokeWidth={1.8} />
       </button>
       {open && (
         <div
+          id={tooltipId}
           role="tooltip"
-          className="absolute bottom-full left-0 mb-2 w-64 rounded-md border border-border/60 bg-card px-3 py-2 text-[11px] leading-snug text-muted-foreground shadow-lg backdrop-blur-md"
+          className="absolute bottom-full left-0 mb-2 w-64 rounded-md border border-border/60 bg-card px-3 py-2 text-xs leading-snug text-muted-foreground shadow-lg backdrop-blur-md animate-in fade-in slide-in-from-bottom-1 duration-150"
         >
           Market indicators are estimates based on available listing data and may be delayed or incomplete. Not real estate, financial, legal, or investment advice.
         </div>
       )}
-    </div>
+    </>
   );
 }
 
 
-function LogoA() {
+function LogoMark() {
   return (
     <svg
       viewBox="0 0 40 40"
-      className="h-8 w-auto"
+      className="h-8 w-auto text-primary"
       role="img"
-      aria-label="Alta"
+      aria-label="Real Estate Heatmap"
       fill="none"
     >
       <path
-        d="M4.5 35 L20 4 L35.5 35"
-        stroke="#183659"
+        d="M6 18 L20 6 L34 18 V34 H6 Z"
+        stroke="currentColor"
         strokeWidth="3"
         strokeLinejoin="miter"
-        strokeMiterlimit="10"
-        strokeLinecap="butt"
         fill="none"
       />
       <path
-        d="M20 16 L14.5 26 L25.5 26 Z"
-        stroke="#183659"
+        d="M16 34 V24 H24 V34"
+        stroke="currentColor"
         strokeWidth="2"
         strokeLinejoin="miter"
         fill="none"
@@ -875,6 +1217,7 @@ function BottomSheet({
   neighborhood,
   displayName,
   metrics,
+  updating,
   localType,
   localSize,
   setLocalType,
@@ -884,26 +1227,16 @@ function BottomSheet({
   onClose: () => void;
   neighborhood: Neighborhood | null;
   displayName: string | null;
-  metrics: ReturnType<typeof computeMetrics> | null;
+  metrics: Metrics | null;
+  /** true while a new filter combination is loading (stale numbers still shown) */
+  updating: boolean;
   localType: PropertyType;
   localSize: SizeType;
   setLocalType: (v: PropertyType) => void;
   setLocalSize: (v: SizeType) => void;
 }) {
   const thermal = metrics?.thermal ?? "even";
-  const badgeBg =
-    thermal === "hot"
-      ? "#FCE7EC"
-      : thermal === "cold"
-        ? "#E0F2FB"
-        : "#EEF1F5";
-  const badgeColor =
-    thermal === "hot"
-      ? "#9F1239"
-      : thermal === "cold"
-        ? "#0369A1"
-        : "#475569";
-
+  const { bg: badgeBg, color: badgeColor, ring: badgeRing } = THERMAL_BADGE[thermal];
 
   return (
     <>
@@ -912,12 +1245,12 @@ function BottomSheet({
           type="button"
           aria-label="Close panel"
           onClick={onClose}
-          className="fixed inset-0 z-40 bg-primary/20 backdrop-blur-sm transition-opacity animate-fade-in"
+          className="fixed inset-0 z-40 bg-primary/20 backdrop-blur-sm dark:bg-black/50 transition-opacity animate-fade-in"
         />
       )}
       <aside
         aria-hidden={!open}
-        className={`fixed z-50 flex flex-col overflow-hidden border border-border/70 bg-card transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] inset-x-0 bottom-0 mx-auto max-w-3xl rounded-2xl shadow-[0_-20px_60px_-20px_rgba(15,23,42,0.25)] md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2 md:mx-0 md:w-[min(576px,92vw)] md:max-w-xl md:rounded-2xl md:shadow-[0_30px_80px_-20px_rgba(15,23,42,0.35)] ${
+        className={`fixed z-50 flex flex-col overflow-hidden border border-border/70 bg-card dark:border-slate-800/60 dark:bg-slate-900/95 dark:shadow-2xl dark:backdrop-blur-md dark:md:shadow-2xl transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] inset-x-0 bottom-0 mx-auto max-w-3xl rounded-2xl shadow-[0_-20px_60px_-20px_rgba(15,23,42,0.25)] md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2 md:mx-0 md:w-[min(576px,92vw)] md:max-w-xl md:rounded-2xl md:shadow-[0_30px_80px_-20px_rgba(15,23,42,0.35)] ${
           open
             ? "translate-y-0 opacity-100 md:-translate-x-1/2 md:-translate-y-1/2"
             : "translate-y-full opacity-0 pointer-events-none md:-translate-x-1/2 md:-translate-y-[calc(50%-12px)]"
@@ -928,32 +1261,36 @@ function BottomSheet({
           <span className="h-1.5 w-10 rounded-full bg-border" />
         </div>
 
-        {neighborhood && metrics && (
+        {neighborhood && (
           <>
             <div className="flex shrink-0 items-start justify-between gap-3 px-5 pt-3 md:px-8 md:pt-7">
               <div>
-                <h2 className="text-2xl font-semibold tracking-tight text-primary">
+                <h2 className="text-2xl font-semibold tracking-tight text-primary dark:text-white">
                   {displayName ?? neighborhood.name}
                 </h2>
-                <p className="mt-0.5 text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                <p className="mt-0.5 text-xs font-medium uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
                   {neighborhood.name}
                 </p>
-                <span
-                  className="mt-1.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium"
-                  style={{ backgroundColor: badgeBg, color: badgeColor }}
-                >
+                {metrics ? (
                   <span
-                    className="h-1.5 w-1.5 rounded-full"
-                    style={{ backgroundColor: badgeColor }}
-                  />
-                  {THERMAL_LABEL[thermal]}
-                </span>
+                    className="mt-1.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
+                    style={{ backgroundColor: badgeBg, color: badgeColor, boxShadow: badgeRing }}
+                  >
+                    <span
+                      className="h-1.5 w-1.5 rounded-full"
+                      style={{ backgroundColor: badgeColor }}
+                    />
+                    {THERMAL_LABEL[thermal]}
+                  </span>
+                ) : (
+                  <span className="mt-1.5 block h-6 w-28 animate-pulse rounded-full bg-secondary dark:bg-slate-800" />
+                )}
               </div>
               <button
                 type="button"
                 onClick={onClose}
                 aria-label="Close"
-                className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-secondary"
+                className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-secondary dark:text-slate-400 dark:hover:text-white"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                   <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
@@ -966,14 +1303,14 @@ function BottomSheet({
                 <Segmented
                   size="lg"
                   fullWidth
-                  options={["All", "Condo", "Co-op", "TH"] as const}
+                  options={TYPE_OPTIONS}
                   value={localType}
                   onChange={setLocalType}
                 />
                 <Segmented
                   size="lg"
                   fullWidth
-                  options={["All", "1 Bed", "2 Bed", "3 Bed"] as const}
+                  options={SIZE_OPTIONS}
                   value={localSize}
                   onChange={setLocalSize}
                 />
@@ -981,23 +1318,39 @@ function BottomSheet({
 
 
 
-              <div className="mt-4 grid grid-cols-2 gap-2.5">
-                <Metric label="Supply" value={`${metrics.supply}`} unit="mo" />
-                <Metric label="Avg DOM" value={`${metrics.dom}`} unit="days" />
+              {/* Dim stale numbers while a new filter combination loads */}
+              <div
+                aria-busy={updating}
+                className={`mt-4 grid grid-cols-2 gap-2.5 transition-opacity duration-200 ${
+                  updating && metrics ? "opacity-60" : ""
+                }`}
+              >
+                <Metric
+                  label="Supply"
+                  value={metrics && `${metrics.supply}`}
+                  unit="mo"
+                  info="Months of supply: how long current listings would take to sell at the recent sales pace. Under 5 mo is a seller's market; over 6 mo is a buyer's market."
+                />
+                <Metric
+                  label="Avg DOM"
+                  value={metrics && `${metrics.dom}`}
+                  unit="days"
+                  info="Average days on market: how long listings typically stay active before going into contract."
+                />
                 <Metric
                   label="Avg Price / sqft"
-                  value={`$${metrics.ppsf.toLocaleString()}`}
+                  value={metrics && `$${metrics.ppsf.toLocaleString()}`}
                 />
-                <Metric label="In Contract" value={`${metrics.inContract}`} />
+                <Metric label="In Contract" value={metrics && `${metrics.inContract}`} />
               </div>
 
               <LeadCapture neighborhoodName={displayName ?? neighborhood.name} />
             </div>
 
-            <div className="shrink-0 border-t border-border/60 bg-card px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 md:border-t-0 md:px-8 md:pb-7 md:pt-4">
+            <div className="shrink-0 border-t border-border/60 bg-card dark:border-slate-800/60 dark:bg-transparent px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 md:border-t-0 md:px-8 md:pb-7 md:pt-4">
               <button
                 type="button"
-                className="flex w-full items-center justify-center gap-2 rounded-md border border-[#183659] bg-transparent py-3.5 text-sm font-semibold tracking-[0.08em] text-[#183659] transition-transform hover:scale-[1.01] active:scale-[0.99]"
+                className="flex w-full items-center justify-center gap-2 rounded-md border border-primary bg-transparent py-3.5 text-sm font-semibold tracking-[0.08em] text-primary transition-[transform,background-color] dark:border-slate-700 dark:text-white dark:hover:bg-slate-700/50 hover:scale-[1.01] active:scale-[0.99]"
               >
                 <Building size={16} strokeWidth={2} aria-hidden className="shrink-0" />
                 SEE LISTINGS
@@ -1010,15 +1363,61 @@ function BottomSheet({
   );
 }
 
-function Metric({ label, value, unit }: { label: string; value: string; unit?: string }) {
+function Metric({
+  label,
+  value,
+  unit,
+  info,
+}: {
+  label: string;
+  /** null renders a loading skeleton */
+  value: string | null;
+  unit?: string;
+  info?: string;
+}) {
+  const [infoOpen, setInfoOpen] = useState(false);
+  const tooltipId = useId();
   return (
-    <div className="flex flex-col justify-between rounded-md bg-secondary/70 p-3.5">
-      <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+    <div className="relative flex flex-col justify-between rounded-xl bg-secondary/70 p-3.5 dark:bg-slate-800/80">
+      <span className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
         {label}
+        {info && (
+          <button
+            type="button"
+            aria-label={`About ${label}`}
+            aria-describedby={infoOpen ? tooltipId : undefined}
+            onClick={() => setInfoOpen((v) => !v)}
+            // Hover only for real mice; on touch the emulated enter + click
+            // would open and immediately toggle closed.
+            onPointerEnter={(e) => e.pointerType === "mouse" && setInfoOpen(true)}
+            onPointerLeave={(e) => e.pointerType === "mouse" && setInfoOpen(false)}
+            onBlur={() => setInfoOpen(false)}
+            className="-m-1 rounded-full p-1 text-slate-500 transition-colors hover:text-primary dark:text-slate-400"
+          >
+            <Info size={13} strokeWidth={2} />
+          </button>
+        )}
       </span>
+      {info && infoOpen && (
+        <div
+          id={tooltipId}
+          role="tooltip"
+          className="absolute inset-x-0 top-full z-10 mt-1.5 rounded-md border border-border/60 bg-card px-3 py-2 text-xs normal-case leading-snug tracking-normal text-muted-foreground shadow-lg"
+        >
+          {info}
+        </div>
+      )}
       <span className="mt-1 flex items-baseline gap-1">
-        <span className="text-xl font-semibold tracking-tight text-primary">{value}</span>
-        {unit && <span className="text-[11px] text-muted-foreground">{unit}</span>}
+        {value === null ? (
+          <span className="h-7 w-16 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+        ) : (
+          <>
+            <span className="text-xl font-semibold tracking-tight text-primary dark:text-white">
+              {value}
+            </span>
+            {unit && <span className="text-sm text-slate-600 dark:text-slate-400">{unit}</span>}
+          </>
+        )}
       </span>
     </div>
   );
@@ -1052,7 +1451,7 @@ function LeadCapture({ neighborhoodName }: { neighborhoodName: string }) {
     return (
       <div
         role="status"
-        className="mt-4 rounded-none border border-border/70 bg-secondary/60 px-4 py-3 text-[13px] font-medium leading-snug text-primary transition-all duration-500"
+        className="mt-4 rounded-none bg-secondary/70 dark:bg-slate-800/50 px-4 py-3 text-sm font-medium leading-snug text-primary transition-all duration-500"
       >
         <span className="mr-1.5 text-hot">✓</span>
         Perfect! We will notify you if the real estate climate shifts in this
@@ -1064,9 +1463,9 @@ function LeadCapture({ neighborhoodName }: { neighborhoodName: string }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-4 rounded-none border border-border/70 bg-secondary/40 p-3.5"
+      className="mt-4 rounded-none bg-secondary/70 p-3.5 dark:bg-slate-800/50"
     >
-      <p className="text-[12.5px] leading-snug tracking-tight text-primary">
+      <p className="text-sm leading-snug tracking-tight text-primary">
         Sign me up if the heatmap changes in{" "}
         <span className="font-semibold">{neighborhoodName}</span>.
       </p>
@@ -1082,17 +1481,17 @@ function LeadCapture({ neighborhoodName }: { neighborhoodName: string }) {
           }}
           placeholder="you@email.com"
           aria-label="Email address"
-          className="h-10 flex-1 rounded-md border border-border bg-card px-4 text-[13px] text-primary placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15"
+          className="h-10 flex-1 rounded-md border border-primary/35 bg-card px-4 text-sm text-primary placeholder:text-slate-500 transition-colors hover:border-primary/60 focus:border-primary dark:border-slate-700/60 dark:bg-slate-900/80 dark:text-white dark:placeholder:text-slate-500 dark:hover:border-slate-500 dark:focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/15"
         />
         <button
           type="submit"
-          className="h-10 shrink-0 rounded-md bg-primary px-4 text-[12.5px] font-semibold tracking-tight text-primary-foreground transition-transform hover:scale-[1.02] active:scale-[0.98]"
+          className="h-10 shrink-0 rounded-md bg-primary px-4 text-sm font-semibold tracking-tight text-primary-foreground transition-[transform,background-color] dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 hover:scale-[1.02] active:scale-[0.98]"
         >
           Notify Me
         </button>
       </div>
       {error && (
-        <p className="mt-1.5 text-[11px] text-destructive">{error}</p>
+        <p className="mt-1.5 text-sm text-destructive">{error}</p>
       )}
     </form>
   );

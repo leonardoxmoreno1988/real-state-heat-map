@@ -77,15 +77,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Alta Forecast — Manhattan Real Estate Market Analytics" },
+      { title: "Real Estate Heatmap — Manhattan Real Estate Market Analytics" },
       { name: "description", content: "Live Manhattan real estate heatmap. Track hot, even, and cold neighborhood markets by property type and size." },
-      { name: "author", content: "Alta" },
-      { property: "og:title", content: "Alta Forecast — Manhattan Real Estate Market Analytics" },
+      { name: "author", content: "Real Estate Heatmap" },
+      { property: "og:title", content: "Real Estate Heatmap — Manhattan Real Estate Market Analytics" },
       { property: "og:description", content: "Live Manhattan real estate heatmap. Track hot, even, and cold neighborhood markets by property type and size." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Alta" },
-      { name: "twitter:title", content: "Alta Forecast — Manhattan Real Estate Market Analytics" },
+      { name: "twitter:title", content: "Real Estate Heatmap — Manhattan Real Estate Market Analytics" },
       { name: "twitter:description", content: "Live Manhattan real estate heatmap. Track hot, even, and cold neighborhood markets by property type and size." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0e826df0-c728-4ea5-b349-3326708dcd8e/id-preview-33b9e761--e811fb8c-145c-43d2-87db-b462f939d53e.lovable.app-1783007702676.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0e826df0-c728-4ea5-b349-3326708dcd8e/id-preview-33b9e761--e811fb8c-145c-43d2-87db-b462f939d53e.lovable.app-1783007702676.png" },
@@ -95,6 +94,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
+      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
@@ -104,10 +104,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
+// Runs before first paint so dark-mode users never see a light flash.
+// Saved choice wins; otherwise follow the OS. Keep the key in sync with ThemeToggle.
+const THEME_INIT_SCRIPT = `(function(){try{var t=localStorage.getItem("theme");var d=t?t==="dark":window.matchMedia("(prefers-color-scheme: dark)").matches;document.documentElement.classList.toggle("dark",d)}catch(e){}})()`;
+
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    // suppressHydrationWarning: the init script adds the .dark class before React hydrates
+    <html lang="en" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <HeadContent />
       </head>
       <body>

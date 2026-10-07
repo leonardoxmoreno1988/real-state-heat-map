@@ -1,12 +1,12 @@
-# Alta Heatmap
+# Real Estate Heatmap
 
-Act as a Senior Frontend Developer and design a Mobile-First Single Page Application (SPA) using React and Tailwind CSS. The project is named "Alta Heatmap," a real estate analytics tool with a premium, minimalist, and clean aesthetic directly inspired by Apple’s design philosophy (Jony Ive): abundant whitespace, elegant sans-serif typography, subtle rounded corners, and absolutely no text clutter.
+Act as a Senior Frontend Developer and design a Mobile-First Single Page Application (SPA) using React and Tailwind CSS. The project is named "Real Estate Heatmap," a real estate analytics tool with a premium, minimalist, and clean aesthetic directly inspired by Apple’s design philosophy (Jony Ive): abundant whitespace, elegant sans-serif typography, subtle rounded corners, and absolutely no text clutter.
 
 The application must include the following modules and interactive features:
 
 1. GLOBAL NAVIGATION & FILTERS (Top Area):
 
-- A fixed top navigation bar featuring a sleek, geometric "A" logo in deep navy blue.
+- A fixed top navigation bar featuring a sleek, geometric house logo in deep navy blue.
 
 - Right below the navbar, include two interactive segmented controls (pill-shaped buttons joined together):
 
@@ -61,8 +61,6 @@ The application must include the following modules and interactive features:
   * A highly visible call-to-action button at the bottom reading: "SEE LISTINGS".
 
 This project was built with [Lovable](https://lovable.dev).
-
-**Live app**: https://alta-heat-map.lovable.app
 
 ## Build with Lovable
 

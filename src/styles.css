@@ -87,7 +87,7 @@
   --input: oklch(0.93 0.005 260);
   --ring: #183659;
 
-  /* Alta thermal tokens */
+  /* Thermal tokens */
   --hot: #E11D48;                        /* deep rose / carmine */
   --hot-fill: rgba(225, 29, 72, 0.32);
   --hot-stroke: #D47A85;                 /* soft pastel crimson */
@@ -99,32 +99,81 @@
   --cold-stroke: #89C3E2;                /* soft sky blue */
   --park: oklch(0.82 0.11 145 / 0.55);
   --park-stroke: oklch(0.55 0.12 145);
-  --water: oklch(0.96 0.01 220);
+  --water: #f8fafc; /* map canvas: clean off-white (slate-50) */
+  --map-label: #183659;
+  --map-stroke-width: 0.7px;
+
+  /* Status badges (detail card + map tooltip) */
+  --badge-hot-bg: #FCE7EC;
+  --badge-hot-fg: #9F1239;
+  --badge-even-bg: #EEF1F5;
+  --badge-even-fg: #475569;
+  --badge-cold-bg: #E0F2FB;
+  --badge-cold-fg: #0369A1;
+  --badge-hot-border: transparent;
+  --badge-even-border: transparent;
+  --badge-cold-border: transparent;
 }
 
 
 
 
 .dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
+  /* Slate palette: slate-900 page, slate-800 cards, slate-700 borders */
+  color-scheme: dark; /* native scrollbars, inputs, autofill */
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+  --card: #1e293b;
+  --card-foreground: #f1f5f9;
+  --popover: #1e293b;
+  --popover-foreground: #f1f5f9;
+  --primary: #f1f5f9;
+  --primary-foreground: #0f172a;
+  --secondary: #334155;
+  --secondary-foreground: #f1f5f9;
+  --muted: #334155;
+  --muted-foreground: #94a3b8;
+  --accent: #334155;
+  --accent-foreground: #f1f5f9;
   --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
+  --destructive-foreground: #f1f5f9;
+  --border: #334155;
+  --input: #334155;
+  --ring: #94a3b8;
+
+  /* Map: deep slate canvas with soft pastel status fills. Like light mode,
+     each border uses its own status hue (muted, semi-transparent) and is painted
+     beneath the fill, so it blends with its tint yet separates neighbors.
+     Legend dots use the same hues at full strength. */
+  --water: #0f172a;
+  --map-label: #f1f5f9; /* slate-100 */
+  --map-stroke-width: 1px;
+  --map-selected-stroke: #28aee3;
+  --map-selected-width: 2px;
+  --hot: #e11d48;
+  --even: #94a3b8;
+  --cold: #38bdf8;
+  --hot-fill: rgb(225 29 72 / 0.35);
+  --even-fill: rgb(148 163 184 / 0.2);
+  --cold-fill: rgb(56 189 248 / 0.35);
+  --hot-stroke: rgb(244 63 94 / 0.5);
+  --even-stroke: rgb(148 163 184 / 0.35);
+  --cold-stroke: rgb(56 189 248 / 0.45);
+  --park: rgb(34 197 94 / 0.2);
+  --park-label: #ffffff;
+  --park-stroke: rgb(74 222 128 / 0.35);
+
+  /* Soft translucent badges: rose / sky / slate 950-tint, 300 text, 800 border */
+  --badge-hot-bg: rgb(76 5 25 / 0.6); /* rose-950/60 */
+  --badge-hot-fg: #fda4af; /* rose-300 */
+  --badge-hot-border: rgb(159 18 57 / 0.5); /* rose-800/50 */
+  --badge-even-bg: #1e293b; /* slate-800 */
+  --badge-even-fg: #cbd5e1; /* slate-300 */
+  --badge-even-border: #334155; /* slate-700 */
+  --badge-cold-bg: rgb(8 47 73 / 0.6); /* sky-950/60 */
+  --badge-cold-fg: #7dd3fc; /* sky-300 */
+  --badge-cold-border: rgb(7 89 133 / 0.5); /* sky-800/50 */
+
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -149,6 +198,53 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
   }
+}
+
+/* Map polygons: round joins/caps so shared corners meet cleanly, and paint
+   the stroke beneath the fill so adjacent borders blend at intersections. */
+.map-path {
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  paint-order: stroke fill;
+}
+
+/* Neighborhood labels: semibold on light, medium on dark (light-on-dark
+   text reads heavier, so a lighter weight looks equally crisp). */
+.map-label {
+  font-weight: 600;
+}
+
+.dark .map-label {
+  font-weight: 500;
+}
+
+/* Indeterminate progress sweep for API requests (see <main> in index.tsx) */
+@keyframes api-progress {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+
+@utility animate-api-progress {
+  animation: api-progress 1s ease-in-out infinite;
+}
+
+/* Map label fade: labels are never unmounted on zoom; they fade (and ease
+   in from a slight scale) as data-visible flips. */
+.map-fade {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    opacity 250ms ease-in-out,
+    transform 200ms ease-out;
+}
+
+.map-fade[data-visible="false"] {
+  opacity: 0;
+  transform: scale(0.94);
 }
 
 .neighborhood-label {

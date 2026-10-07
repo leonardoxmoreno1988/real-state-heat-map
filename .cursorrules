@@ -1,0 +1,27 @@
+# Real Estate Heatmap - Portfolio Project Rules
+
+## Core Context
+Web-based real estate heat map application ("Real Estate Heatmap") for NYC (Manhattan).
+Stack: React + Tailwind CSS + TypeScript + Vite.
+
+## Portfolio & White-Label Rules
+1. Branding & Naming:
+   - Official product name: "Real Estate Heatmap".
+   - White-label generic branding (no client disclosures).
+   - Left-aligned titles in modals/cards (Western reading standard).
+
+2. Heat Map Behavior:
+   - Objective market indicators:
+     - Red / Hot = Seller's Market (Low inventory / high demand).
+     - Blue / Cold = Buyer's Market (High inventory / buyer leverage).
+     - Gray / Neutral = Balanced Market.
+   - Colors DO NOT invert based on user persona.
+   - Hairline non-scaling strokes (`vector-effect: non-scaling-stroke`).
+
+3. Interactions & UI Features:
+   - Bedroom filter uses "4+ Bed" label.
+   - Mobile Detail Panel: Positioned below map; clean initial view (key metrics first, scroll reveals extended options like notification form).
+   - Multi-trigger back navigation: Glassmorphic back arrow, tapping outer map area, or thumb swiping.
+
+4. Footer Legal Text:
+   - "© 2026 Real Estate Heatmap · Privacy · Terms"
