@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Building, ChevronLeft, Info } from "lucide-react";
+import { Building, Info } from "lucide-react";
 import {
   TransformWrapper,
   TransformComponent,
@@ -10,11 +10,8 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-type PropertyType = "All" | "Condo" | "Co-op" | "Townhouse";
-type SizeType = "All" | "Studio" | "1 Bed" | "2 Bed" | "3 Bed" | "+4 Bed";
-
-const TYPE_OPTIONS = ["All", "Condo", "Co-op", "Townhouse"] as const;
-const SIZE_OPTIONS = ["All", "Studio", "1 Bed", "2 Bed", "3 Bed", "+4 Bed"] as const;
+type PropertyType = "All" | "Condo" | "Co-op" | "TH";
+type SizeType = "All" | "1 Bed" | "2 Bed" | "3 Bed";
 type Thermal = "hot" | "even" | "cold";
 
 interface SubPath {
@@ -194,15 +191,13 @@ const TYPE_FACTORS: Record<PropertyType, number> = {
   All: 1,
   Condo: 0.78,
   "Co-op": 1.18,
-  Townhouse: 0.92,
+  TH: 0.92,
 };
 const SIZE_FACTORS: Record<SizeType, number> = {
   All: 1,
-  Studio: 0.72,
   "1 Bed": 0.85,
   "2 Bed": 1.0,
   "3 Bed": 1.22,
-  "+4 Bed": 1.4,
 };
 
 function thermalFor(supply: number): Thermal {
@@ -276,6 +271,12 @@ const THERMAL_STROKE: Record<Thermal, string> = {
   even: "var(--even-stroke)",
   cold: "var(--cold-stroke)",
 };
+const THERMAL_LABEL: Record<Thermal, string> = {
+  hot: "Hot · Seller's",
+  even: "Even · Neutral",
+  cold: "Cold · Buyer's",
+};
+
 const ZOOM_THRESHOLD = 1.4; // Tier 2 begins — micro labels fade in
 const ZOOM_THRESHOLD_LG = 2.2; // Tier 3 begins — micro labels scale up
 
@@ -285,14 +286,12 @@ function Segmented<T extends string>({
   onChange,
   size = "md",
   fullWidth = false,
-  variant = "strip",
 }: {
   options: readonly T[];
   value: T;
   onChange: (v: T) => void;
   size?: "sm" | "md" | "lg";
   fullWidth?: boolean;
-  variant?: "strip" | "pills";
 }) {
   const pad =
     size === "sm"
@@ -300,31 +299,6 @@ function Segmented<T extends string>({
       : size === "lg"
         ? "px-4 py-2 text-sm"
         : "px-3.5 py-1.5 text-[13px]";
-
-  if (variant === "pills") {
-    return (
-      <div className="-mx-1 flex w-full gap-1.5 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {options.map((opt) => {
-          const active = opt === value;
-          return (
-            <button
-              key={opt}
-              type="button"
-              onClick={() => onChange(opt)}
-              className={`${pad} shrink-0 whitespace-nowrap rounded-md font-semibold tracking-tight transition-all duration-200 ${
-                active
-                  ? "bg-[#0D2847] text-white"
-                  : "bg-[#E2E8F0] text-[#475569] hover:bg-[#d6dee9]"
-              }`}
-            >
-              {opt}
-            </button>
-          );
-        })}
-      </div>
-    );
-  }
-
   return (
     <div className={`${fullWidth ? "flex w-full" : "inline-flex"} rounded-md bg-secondary p-1`}>
 
@@ -354,6 +328,8 @@ function Index() {
   const [globalSize, setGlobalSize] = useState<SizeType>("All");
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
+  const [localType, setLocalType] = useState<PropertyType>("All");
+  const [localSize, setLocalSize] = useState<SizeType>("All");
   const [zoom, setZoom] = useState(1);
   const [tooltip, setTooltip] = useState<{
     x: number;
@@ -381,19 +357,23 @@ function Index() {
       const subStates = n.subPaths.map((sp) => {
         const key = subKey(n.id, sp.name);
         const isSelected = key === selectedKey;
-        const m = subMetrics(n, sp, globalType, globalSize);
+        const t = isSelected ? localType : globalType;
+        const s = isSelected ? localSize : globalSize;
+        const m = subMetrics(n, sp, t, s);
         return { sp, key, isSelected, ...m };
       });
       return { n, subStates };
     });
-  }, [globalType, globalSize, selectedKey]);
+  }, [globalType, globalSize, selectedKey, localType, localSize]);
 
   const selectedMetrics = selection
-    ? subMetrics(selection.n, selection.sp, globalType, globalSize)
+    ? subMetrics(selection.n, selection.sp, localType, localSize)
     : null;
 
   const handleSelect = (nId: string, spName: string) => {
     setSelectedKey(subKey(nId, spName));
+    setLocalType(globalType);
+    setLocalSize(globalSize);
   };
 
   const microVisible = zoom >= ZOOM_THRESHOLD;
@@ -527,9 +507,7 @@ function Index() {
 
   return (
     <div className="flex h-[100dvh] flex-col overflow-hidden bg-background text-foreground">
-      {!selection && (
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur-xl">
-
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-5">
           <div className="flex items-center gap-2.5">
             <LogoA />
@@ -549,33 +527,22 @@ function Index() {
           </button>
         </div>
 
-        <div className="mx-auto flex max-w-3xl flex-col gap-3 px-5 pb-4 pt-2 sm:flex-row sm:items-center sm:justify-start sm:gap-4">
-          <div className="-mx-1 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <Segmented
-              size="sm"
-              options={TYPE_OPTIONS}
-              value={globalType}
-              onChange={setGlobalType}
-            />
-          </div>
-          <div className="-mx-1 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <Segmented
-              size="sm"
-              options={SIZE_OPTIONS}
-              value={globalSize}
-              onChange={setGlobalSize}
-            />
-          </div>
+        <div className="mx-auto flex max-w-3xl flex-col gap-4 px-5 pb-4 pt-2 sm:flex-row sm:items-center sm:justify-start">
+          <Segmented
+            options={["All", "Condo", "Co-op", "TH"] as const}
+            value={globalType}
+            onChange={setGlobalType}
+          />
+          <Segmented
+            options={["All", "1 Bed", "2 Bed", "3 Bed"] as const}
+            value={globalSize}
+            onChange={setGlobalSize}
+          />
         </div>
       </header>
-      )}
 
-      <main className="flex flex-1 flex-col overflow-hidden bg-[var(--water)]">
-        <div
-          className={`relative min-h-0 w-full ${selection ? "h-[45%] shrink-0 sm:h-1/2" : "flex-1"}`}
-        >
+      <main className="relative flex-1 overflow-hidden bg-[var(--water)]">
         <TransformWrapper
-
           initialScale={1}
           minScale={1}
           maxScale={5}
@@ -610,11 +577,11 @@ function Index() {
                           }}
                           d={sp.d}
                           fill={THERMAL_FILL[thermal]}
-                          stroke={isSelected ? "#2563EB" : THERMAL_STROKE[thermal]}
+                          stroke={THERMAL_STROKE[thermal]}
                           strokeOpacity={1}
                           strokeWidth={
                             isSelected
-                              ? 2.4
+                              ? 1.8
                               : isHovered
                                 ? 1.3
                                 : microStrokeWidthBase
@@ -812,35 +779,19 @@ function Index() {
           © 2026 Alta Forecast · Privacy · Terms
         </div>
 
-        {selection && (
-          <button
-            type="button"
-            onClick={() => setSelectedKey(null)}
-            aria-label="Clear selection"
-            className="absolute left-4 top-4 z-[60] flex h-9 w-9 items-center justify-center rounded-md border border-border/70 bg-card/90 text-primary shadow-sm backdrop-blur-md transition-colors hover:bg-card"
-          >
-            <ChevronLeft size={18} strokeWidth={2} />
-          </button>
-        )}
-        </div>
-
-        {selection && (
-          <FloatingCard
-            open
-            onClose={() => setSelectedKey(null)}
-            neighborhood={selection.n}
-            displayName={selection.sp.name}
-            metrics={selectedMetrics}
-            localType={globalType}
-            localSize={globalSize}
-            setLocalType={setGlobalType}
-            setLocalSize={setGlobalSize}
-          />
-        )}
-
       </main>
 
-
+      <BottomSheet
+        open={!!selection}
+        onClose={() => setSelectedKey(null)}
+        neighborhood={selection?.n ?? null}
+        displayName={selection?.sp.name ?? null}
+        metrics={selectedMetrics}
+        localType={localType}
+        localSize={localSize}
+        setLocalType={setLocalType}
+        setLocalSize={setLocalSize}
+      />
     </div>
   );
 }
@@ -918,18 +869,7 @@ function LogoA() {
   );
 }
 
-const MARKET_LABEL: Record<Thermal, string> = {
-  hot: "Seller's Market",
-  even: "Neutral",
-  cold: "Buyer's Market",
-};
-
-const SUPPLY_TIP =
-  "Months of Supply measures how long current listing inventory would last at the current rate of sales. Less than 4 months signals a Seller's Market; over 6 months signals a Buyer's Market.";
-const DOM_TIP =
-  "Average number of days properties in this neighborhood spend on the market before going under contract or closing.";
-
-function FloatingCard({
+function BottomSheet({
   open,
   onClose,
   neighborhood,
@@ -964,25 +904,50 @@ function FloatingCard({
         ? "#0369A1"
         : "#475569";
 
+
   return (
-    <aside
-      aria-hidden={!open}
-      className="flex min-h-0 flex-1 justify-center overflow-hidden px-3 pb-3 pt-2"
-    >
-      <div
-        className="flex h-full w-full max-w-[440px] flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-[0_20px_50px_-20px_rgba(15,23,42,0.3)]"
+    <>
+      {open && (
+        <button
+          type="button"
+          aria-label="Close panel"
+          onClick={onClose}
+          className="fixed inset-0 z-40 bg-primary/20 backdrop-blur-sm transition-opacity animate-fade-in"
+        />
+      )}
+      <aside
+        aria-hidden={!open}
+        className={`fixed z-50 flex flex-col overflow-hidden border border-border/70 bg-card transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] inset-x-0 bottom-0 mx-auto max-w-3xl rounded-2xl shadow-[0_-20px_60px_-20px_rgba(15,23,42,0.25)] md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2 md:mx-0 md:w-[min(576px,92vw)] md:max-w-xl md:rounded-2xl md:shadow-[0_30px_80px_-20px_rgba(15,23,42,0.35)] ${
+          open
+            ? "translate-y-0 opacity-100 md:-translate-x-1/2 md:-translate-y-1/2"
+            : "translate-y-full opacity-0 pointer-events-none md:-translate-x-1/2 md:-translate-y-[calc(50%-12px)]"
+        }`}
+        style={{ maxHeight: "88vh", height: "auto" }}
       >
+        <div className="flex shrink-0 items-center justify-center pt-2.5 md:hidden">
+          <span className="h-1.5 w-10 rounded-full bg-border" />
+        </div>
 
         {neighborhood && metrics && (
           <>
-            <div className="flex shrink-0 items-start justify-between gap-3 px-5 pt-5">
+            <div className="flex shrink-0 items-start justify-between gap-3 px-5 pt-3 md:px-8 md:pt-7">
               <div>
-                <h2 className="text-[22px] font-bold leading-tight tracking-tight text-primary">
+                <h2 className="text-2xl font-semibold tracking-tight text-primary">
                   {displayName ?? neighborhood.name}
                 </h2>
-                <p className="mt-0.5 text-[10.5px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                <p className="mt-0.5 text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
                   {neighborhood.name}
                 </p>
+                <span
+                  className="mt-1.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium"
+                  style={{ backgroundColor: badgeBg, color: badgeColor }}
+                >
+                  <span
+                    className="h-1.5 w-1.5 rounded-full"
+                    style={{ backgroundColor: badgeColor }}
+                  />
+                  {THERMAL_LABEL[thermal]}
+                </span>
               </div>
               <button
                 type="button"
@@ -996,38 +961,29 @@ function FloatingCard({
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-5 pb-3 pt-3">
+            <div className="flex-1 overflow-y-auto px-5 pb-3 pt-3 md:px-8 md:pt-4">
               <div className="flex flex-col gap-2">
                 <Segmented
-                  size="sm"
-                  variant="pills"
-                  options={TYPE_OPTIONS}
+                  size="lg"
+                  fullWidth
+                  options={["All", "Condo", "Co-op", "TH"] as const}
                   value={localType}
                   onChange={setLocalType}
                 />
                 <Segmented
-                  size="sm"
-                  variant="pills"
-                  options={SIZE_OPTIONS}
+                  size="lg"
+                  fullWidth
+                  options={["All", "1 Bed", "2 Bed", "3 Bed"] as const}
                   value={localSize}
                   onChange={setLocalSize}
                 />
               </div>
 
-              <span
-                className="mt-3 inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-semibold"
-                style={{ backgroundColor: badgeBg, color: badgeColor }}
-              >
-                <span
-                  className="h-1.5 w-1.5 rounded-full"
-                  style={{ backgroundColor: badgeColor }}
-                />
-                {MARKET_LABEL[thermal]}
-              </span>
 
-              <div className="mt-3 grid grid-cols-2 gap-2.5">
-                <Metric label="Supply" value={`${metrics.supply}`} unit="mo" tip={SUPPLY_TIP} />
-                <Metric label="Avg DOM" value={`${metrics.dom}`} unit="days" tip={DOM_TIP} />
+
+              <div className="mt-4 grid grid-cols-2 gap-2.5">
+                <Metric label="Supply" value={`${metrics.supply}`} unit="mo" />
+                <Metric label="Avg DOM" value={`${metrics.dom}`} unit="days" />
                 <Metric
                   label="Avg Price / sqft"
                   value={`$${metrics.ppsf.toLocaleString()}`}
@@ -1038,59 +994,28 @@ function FloatingCard({
               <LeadCapture neighborhoodName={displayName ?? neighborhood.name} />
             </div>
 
-            <div className="shrink-0 bg-card px-5 pb-5 pt-2">
+            <div className="shrink-0 border-t border-border/60 bg-card px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 md:border-t-0 md:px-8 md:pb-7 md:pt-4">
               <button
                 type="button"
-                className="flex w-full items-center justify-center gap-2 rounded-md border border-[#183659] bg-transparent py-3 text-sm font-semibold tracking-tight text-[#183659] transition-transform hover:scale-[1.01] active:scale-[0.99]"
+                className="flex w-full items-center justify-center gap-2 rounded-md border border-[#183659] bg-transparent py-3.5 text-sm font-semibold tracking-[0.08em] text-[#183659] transition-transform hover:scale-[1.01] active:scale-[0.99]"
               >
                 <Building size={16} strokeWidth={2} aria-hidden className="shrink-0" />
-                See listings
+                SEE LISTINGS
               </button>
             </div>
           </>
         )}
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 }
 
-function Metric({
-  label,
-  value,
-  unit,
-  tip,
-}: {
-  label: string;
-  value: string;
-  unit?: string;
-  tip?: string;
-}) {
-  const [open, setOpen] = useState(false);
+function Metric({ label, value, unit }: { label: string; value: string; unit?: string }) {
   return (
-    <div className="relative flex flex-col justify-between rounded-md bg-secondary/70 p-3.5">
-      <span className="flex items-center gap-1 text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+    <div className="flex flex-col justify-between rounded-md bg-secondary/70 p-3.5">
+      <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
         {label}
-        {tip && (
-          <button
-            type="button"
-            aria-label={`${label} explanation`}
-            onClick={() => setOpen((v) => !v)}
-            onMouseEnter={() => setOpen(true)}
-            onMouseLeave={() => setOpen(false)}
-            className="text-muted-foreground/70 transition-colors hover:text-foreground"
-          >
-            <Info size={11} strokeWidth={2} />
-          </button>
-        )}
       </span>
-      {tip && open && (
-        <div
-          role="tooltip"
-          className="absolute bottom-full left-0 z-20 mb-2 w-60 rounded-md border border-border/70 bg-card px-3 py-2 text-[11px] font-normal normal-case leading-snug tracking-normal text-muted-foreground shadow-lg"
-        >
-          {tip}
-        </div>
-      )}
       <span className="mt-1 flex items-baseline gap-1">
         <span className="text-xl font-semibold tracking-tight text-primary">{value}</span>
         {unit && <span className="text-[11px] text-muted-foreground">{unit}</span>}
@@ -1139,11 +1064,11 @@ function LeadCapture({ neighborhoodName }: { neighborhoodName: string }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-4 rounded-md border border-border/70 bg-secondary/40 p-3.5"
+      className="mt-4 rounded-none border border-border/70 bg-secondary/40 p-3.5"
     >
       <p className="text-[12.5px] leading-snug tracking-tight text-primary">
-        Get notified of <span className="font-semibold">{neighborhoodName}</span>{" "}
-        temperature changes
+        Sign me up if the heatmap changes in{" "}
+        <span className="font-semibold">{neighborhoodName}</span>.
       </p>
       <div className="mt-2.5 flex items-center gap-2">
         <input
@@ -1157,13 +1082,13 @@ function LeadCapture({ neighborhoodName }: { neighborhoodName: string }) {
           }}
           placeholder="you@email.com"
           aria-label="Email address"
-          className="h-10 w-full min-w-0 flex-1 rounded-md border border-border bg-card px-3 text-[13px] text-primary placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15"
+          className="h-10 flex-1 rounded-md border border-border bg-card px-4 text-[13px] text-primary placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15"
         />
         <button
           type="submit"
-          className="h-10 shrink-0 whitespace-nowrap rounded-md bg-primary px-3 text-[12.5px] font-semibold tracking-tight text-primary-foreground transition-transform hover:scale-[1.02] active:scale-[0.98]"
+          className="h-10 shrink-0 rounded-md bg-primary px-4 text-[12.5px] font-semibold tracking-tight text-primary-foreground transition-transform hover:scale-[1.02] active:scale-[0.98]"
         >
-          Notify me
+          Notify Me
         </button>
       </div>
       {error && (
