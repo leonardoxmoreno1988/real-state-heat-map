@@ -526,6 +526,19 @@ function Index() {
     return () => ro.disconnect();
   }, []);
 
+  // The header is fixed over the map so polygons can glide under its glass. Its
+  // height varies (filters stack on mobile), so measure it and pad the map content
+  // by that amount to keep the initial view centered in the visible area.
+  const headerRef = useRef<HTMLElement>(null);
+  const [headerH, setHeaderH] = useState(0);
+  useLayoutEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setHeaderH(el.offsetHeight));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   const labelLayouts = useMemo(() => {
     type Layout = {
       key: string;
@@ -627,8 +640,11 @@ function Index() {
   }, [bboxes, zoom, viewScale]);
 
   return (
-    <div className="flex h-[100dvh] flex-col overflow-hidden bg-background text-foreground">
-      <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/80 dark:backdrop-blur-md">
+    <div className="relative h-[100dvh] overflow-hidden bg-background text-foreground">
+      <header
+        ref={headerRef}
+        className="fixed left-0 right-0 top-0 z-40 border-none bg-white/70 backdrop-blur-xl dark:bg-slate-950/50"
+      >
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-5">
           <div className="flex items-center gap-2.5">
             <span className="relative">
@@ -668,17 +684,18 @@ function Index() {
             onChange={setGlobalSize}
           />
         </div>
-      </header>
 
-      <main className="relative flex-1 overflow-hidden bg-[var(--water)]">
         {/* Indeterminate progress bar while /api/heatmap requests are in flight */}
-        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 z-20 h-0.5 overflow-hidden">
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 -bottom-px z-20 h-0.5 overflow-hidden">
           <div
             className={`h-full w-1/3 bg-[#28AEE3] transition-opacity duration-300 ${
               apiState === "syncing" ? "animate-api-progress opacity-100" : "opacity-0"
             }`}
           />
         </div>
+      </header>
+
+      <main className="absolute inset-0 overflow-hidden bg-[var(--water)]">
         <TransformWrapper
           initialScale={1}
           minScale={MIN_SCALE}
@@ -694,7 +711,10 @@ function Index() {
             wrapperStyle={{ width: "100%", height: "100%" }}
             contentStyle={{ width: "100%", height: "100%" }}
           >
-            <div className="relative mx-auto flex h-full w-full max-w-3xl items-center justify-center px-4 py-3">
+            <div
+              className="relative mx-auto flex h-full w-full max-w-3xl items-center justify-center px-4 py-3"
+              style={{ paddingTop: headerH + 12 }}
+            >
               <svg
                 ref={svgRef}
                 viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
@@ -932,7 +952,7 @@ function Index() {
 
         {/* Positioned card: the (i) icon sits in its top-right corner and the
             disclaimer tooltip anchors to its left edge. pr-8 keeps rows clear of the icon. */}
-        <div className="pointer-events-auto absolute bottom-12 left-4 z-10 flex flex-col gap-1.5 rounded-md border sm:bottom-4 border-border/60 bg-card/85 py-2.5 pl-3 pr-8 text-xs shadow-none backdrop-blur-md">
+        <div className="pointer-events-auto absolute bottom-12 left-4 z-10 flex flex-col gap-1.5 rounded-2xl border-none bg-white/95 py-2.5 pl-3 pr-8 text-xs text-slate-800 shadow-xl backdrop-blur-md dark:shadow-2xl sm:bottom-4 dark:bg-slate-800/90 dark:text-slate-100">
           <LegendRow color="var(--hot)" label="Hot · Seller's" />
           <LegendRow color="var(--even)" label="Even · Neutral" />
           <LegendRow color="var(--cold)" label="Cold · Buyer's" />
@@ -942,7 +962,7 @@ function Index() {
         {/* Bottom-right under the zoom stack, right edges aligned (right-4). Mobile: bottom-3, with
             legend + zoom stack above at bottom-12. sm+: bottom-4, on the legend's baseline; zoom
             stack moves up to bottom-14. */}
-        <div className="pointer-events-none absolute bottom-3 right-4 z-20 whitespace-nowrap rounded-full border border-slate-200/60 bg-white/85 px-3 py-1 text-[10px] font-medium text-slate-600 shadow-sm backdrop-blur-md sm:text-[11px] dark:border-slate-700/50 dark:bg-slate-800/85 dark:text-slate-300 sm:bottom-4">
+        <div className="pointer-events-none absolute bottom-3 right-4 z-20 whitespace-nowrap rounded-full border-none bg-white/95 px-3 py-1 text-[10px] font-medium text-slate-700 shadow-xl backdrop-blur-md dark:shadow-2xl sm:text-[11px] dark:bg-slate-800/90 dark:text-slate-200 sm:bottom-4">
           © 2026 Real Estate Heatmap · Privacy · Terms
         </div>
 
@@ -968,9 +988,9 @@ function Index() {
 function ZoomControls({ zoom }: { zoom: number }) {
   const { zoomIn, zoomOut, resetTransform } = useControls();
   const btn =
-    "flex h-8 w-8 items-center justify-center text-muted-foreground transition-colors hover:bg-secondary hover:text-primary disabled:pointer-events-none disabled:opacity-40";
+    "flex h-8 w-8 items-center justify-center text-slate-700 transition-colors hover:bg-secondary hover:text-slate-900 dark:text-slate-200 dark:hover:text-white disabled:pointer-events-none disabled:opacity-40";
   return (
-    <div className="pointer-events-auto absolute bottom-12 right-4 z-10 flex flex-col overflow-hidden rounded-md border border-border/60 bg-card/85 backdrop-blur-md sm:bottom-14">
+    <div className="pointer-events-auto absolute bottom-12 right-4 z-10 flex flex-col divide-y divide-slate-200/60 overflow-hidden rounded-2xl border-none bg-white/95 text-slate-800 shadow-xl backdrop-blur-md dark:shadow-2xl dark:divide-slate-700/60 dark:bg-slate-800/90 dark:text-slate-100 sm:bottom-14">
       <button
         type="button"
         aria-label="Zoom in"
@@ -985,7 +1005,7 @@ function ZoomControls({ zoom }: { zoom: number }) {
         aria-label="Zoom out"
         onClick={() => zoomOut(0.5)}
         disabled={zoom <= MIN_SCALE + 0.01}
-        className={`${btn} border-t border-border/60`}
+        className={btn}
       >
         <Minus size={15} strokeWidth={1.8} />
       </button>
@@ -993,7 +1013,7 @@ function ZoomControls({ zoom }: { zoom: number }) {
         type="button"
         aria-label="Reset view"
         onClick={() => resetTransform()}
-        className={`${btn} border-t border-border/60`}
+        className={btn}
       >
         <RotateCcw size={14} strokeWidth={1.8} />
       </button>
@@ -1143,7 +1163,7 @@ function LegendRow({ color, label }: { color: string; label: string }) {
         style={{ backgroundColor: color }}
         aria-hidden
       />
-      <span className="text-slate-600 dark:text-slate-300">{label}</span>
+      <span>{label}</span>
     </div>
   );
 }
@@ -1186,27 +1206,15 @@ function DisclaimerInfo() {
 function LogoMark() {
   return (
     <svg
-      viewBox="0 0 40 40"
-      className="h-8 w-auto text-primary"
+      viewBox="0 0 512 512"
+      className="h-7 w-7 shrink-0 fill-current text-primary"
       role="img"
       aria-label="Real Estate Heatmap"
-      fill="none"
     >
-      <path
-        d="M6 18 L20 6 L34 18 V34 H6 Z"
-        stroke="currentColor"
-        strokeWidth="3"
-        strokeLinejoin="miter"
-        fill="none"
-      />
-      <path
-        d="M16 34 V24 H24 V34"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinejoin="miter"
-        fill="none"
-      />
-      <rect x="12.5" y="33.5" width="15" height="2.4" fill="#3EB6DC" />
+      <path d="m141 466h80v-161.751l-80-35.556zm45-145h20v30h-20zm0 40h20v30h-20zm0 40h20v30h-20zm-30-80h20v30h-20zm0 40h20v30h-20zm0 40h20v30h-20z" />
+      <path d="m51 466h80v-197.307l-80 35.556zm45-145h20v30h-20zm0 40h20v30h-20zm0 40h20v30h-20zm-30-80h20v30h-20zm0 40h20v30h-20zm0 40h20v30h-20z" />
+      <path d="m171 271c0 .027-.008.053-.008.08l57.039 25.351c1.806.803 2.969 2.594 2.969 4.569v165h80v-418.063l-140 46.667zm85-170 40-10v20l-40 10zm0 30 40-10v20l-40 10zm0 30 40-10v20l-40 10zm0 30 40-10v20l-40 10zm0 30 40-10v20l-40 10zm0 30 40-10v20l-40 10zm0 30 40-10v20l-40 10zm0 30 40-10v20l-40 10zm-60-190 40-10v20l-40 10zm0 30 40-10v20l-40 10zm0 30 40-10v20l-40 10zm0 30 40-10v20l-40 10z" />
+      <path d="m321 47.937v418.063h140v-371.396zm55 283.063-40-10v-20l40 10zm0-30-40-10v-20l40 10zm0-30-40-10v-20l40 10zm0-30-40-10v-20l40 10zm0-30-40-10v-20l40 10zm0-30-40-10v-20l40 10zm0-30-40-10v-20l40 10zm0-30-40-10v-20l40 10zm60 230-40-10v-20l40 10zm0-30-40-10v-20l40 10zm0-30-40-10v-20l40 10zm0-30-40-10v-20l40 10zm0-30-40-10v-20l40 10zm0-30-40-10v-20l40 10zm0-30-40-10v-20l40 10zm0-30-40-10v-20l40 10z" />
     </svg>
   );
 }
