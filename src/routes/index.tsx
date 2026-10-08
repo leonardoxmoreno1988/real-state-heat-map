@@ -375,12 +375,16 @@ function Segmented<T extends string>({
       ? "px-3 py-1.5 text-xs"
       : size === "lg"
         ? fullWidth
-          ? "flex-1 px-2 py-2 text-sm"
+          ? "flex-1 px-2 py-1.5 text-sm"
           : "px-4 py-2 text-sm"
         : "px-3.5 py-1.5 text-[13px]";
   return (
     <div
-      className={`${fullWidth ? "flex w-full" : "inline-flex"} rounded-2xl bg-secondary p-1 ${fullWidth ? "dark:bg-slate-800/90" : "dark:bg-slate-800/80"}`}
+      className={
+        fullWidth
+          ? "flex w-full rounded-lg bg-slate-100/80 p-1 dark:bg-slate-800/60"
+          : "inline-flex rounded-lg bg-secondary p-1 dark:bg-slate-800/80"
+      }
     >
 
       {options.map((opt) => {
@@ -390,10 +394,12 @@ function Segmented<T extends string>({
             key={opt}
             type="button"
             onClick={() => onChange(opt)}
-            className={`${pad} whitespace-nowrap rounded-xl tracking-tight transition-all duration-200 ${
+            className={`${pad} whitespace-nowrap rounded-md tracking-tight transition-all duration-200 ${
               active
                 ? "bg-primary font-semibold text-primary-foreground shadow-sm dark:bg-white dark:text-slate-900"
-                : "font-medium text-muted-foreground hover:text-foreground dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white"
+                : fullWidth
+                  ? "font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                  : "font-medium text-muted-foreground hover:text-foreground dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white"
             }`}
           >
             {opt}
@@ -652,7 +658,7 @@ function Index() {
               {/* Mobile: status dot on the logo (no room for the full badge) */}
               <ApiStatusDot state={apiState} className="absolute -right-0.5 -top-0.5 sm:hidden" />
             </span>
-            <span className="text-[17px] font-semibold tracking-tight text-primary">
+            <span className="text-[17px] font-semibold leading-none tracking-tight text-primary">
               Real Estate<span className="text-muted-foreground font-normal"> Heatmap</span>
             </span>
             <ApiStatusBadge state={apiState} />
@@ -1271,17 +1277,14 @@ function BottomSheet({
 
         {neighborhood && (
           <>
-            <div className="flex shrink-0 items-start justify-between gap-3 px-5 pt-3 md:px-8 md:pt-7">
-              <div>
-                <h2 className="text-2xl font-semibold tracking-tight text-primary dark:text-white">
+            <div className="flex shrink-0 items-center justify-between gap-3 px-5 pt-3 md:px-8 md:pt-7">
+              <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5">
+                <h2 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
                   {displayName ?? neighborhood.name}
                 </h2>
-                <p className="mt-0.5 text-xs font-medium uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
-                  {neighborhood.name}
-                </p>
                 {metrics ? (
                   <span
-                    className="mt-1.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
                     style={{ backgroundColor: badgeBg, color: badgeColor, boxShadow: badgeRing }}
                   >
                     <span
@@ -1291,7 +1294,7 @@ function BottomSheet({
                     {THERMAL_LABEL[thermal]}
                   </span>
                 ) : (
-                  <span className="mt-1.5 block h-6 w-28 animate-pulse rounded-full bg-secondary dark:bg-slate-800" />
+                  <span className="block h-6 w-28 animate-pulse rounded-full bg-secondary dark:bg-slate-800" />
                 )}
               </div>
               <button
@@ -1329,7 +1332,7 @@ function BottomSheet({
               {/* Dim stale numbers while a new filter combination loads */}
               <div
                 aria-busy={updating}
-                className={`mt-4 grid grid-cols-2 gap-2.5 transition-opacity duration-200 ${
+                className={`mt-4 grid grid-cols-2 gap-x-8 gap-y-6 py-3 transition-opacity duration-200 ${
                   updating && metrics ? "opacity-60" : ""
                 }`}
               >
@@ -1358,7 +1361,7 @@ function BottomSheet({
             <div className="shrink-0 border-t border-border/60 bg-card dark:border-slate-800/60 dark:bg-transparent px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 md:border-t-0 md:px-8 md:pb-7 md:pt-4">
               <button
                 type="button"
-                className="flex w-full items-center justify-center gap-2 rounded-md border border-primary bg-transparent py-3.5 text-sm font-semibold tracking-[0.08em] text-primary transition-[transform,background-color] dark:border-slate-700 dark:text-white dark:hover:bg-slate-700/50 hover:scale-[1.01] active:scale-[0.99]"
+                className="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-transparent py-3 text-sm font-semibold tracking-[0.08em] text-slate-900 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-white dark:hover:bg-slate-800/50"
               >
                 <Building size={16} strokeWidth={2} aria-hidden className="shrink-0" />
                 SEE LISTINGS
@@ -1386,8 +1389,8 @@ function Metric({
   const [infoOpen, setInfoOpen] = useState(false);
   const tooltipId = useId();
   return (
-    <div className="relative flex flex-col justify-between rounded-xl bg-secondary/70 p-3.5 dark:bg-slate-800/80">
-      <span className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+    <div className="relative flex flex-col justify-between">
+      <span className="mb-1 flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
         {label}
         {info && (
           <button
@@ -1415,12 +1418,12 @@ function Metric({
           {info}
         </div>
       )}
-      <span className="mt-1 flex items-baseline gap-1">
+      <span className="flex items-baseline gap-1">
         {value === null ? (
-          <span className="h-7 w-16 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+          <span className="h-8 w-20 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
         ) : (
           <>
-            <span className="text-xl font-semibold tracking-tight text-primary dark:text-white">
+            <span className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
               {value}
             </span>
             {unit && <span className="text-sm text-slate-600 dark:text-slate-400">{unit}</span>}
@@ -1459,9 +1462,9 @@ function LeadCapture({ neighborhoodName }: { neighborhoodName: string }) {
     return (
       <div
         role="status"
-        className="mt-4 rounded-none bg-secondary/70 dark:bg-slate-800/50 px-4 py-3 text-sm font-medium leading-snug text-primary transition-all duration-500"
+        className="mt-4 rounded-lg bg-slate-100 p-4 text-sm dark:bg-slate-800/60 font-medium leading-snug text-primary transition-all duration-500"
       >
-        <span className="mr-1.5 text-hot">✓</span>
+        <span className="mr-1.5 text-emerald-500 dark:text-emerald-400">✓</span>
         Perfect! We will notify you if the real estate climate shifts in this
         neighborhood.
       </div>
@@ -1471,7 +1474,7 @@ function LeadCapture({ neighborhoodName }: { neighborhoodName: string }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-4 rounded-none bg-secondary/70 p-3.5 dark:bg-slate-800/50"
+      className="mt-4 rounded-lg bg-slate-100 p-4 dark:bg-slate-800/60"
     >
       <p className="text-sm leading-snug tracking-tight text-primary">
         Sign me up if the heatmap changes in{" "}
@@ -1489,11 +1492,11 @@ function LeadCapture({ neighborhoodName }: { neighborhoodName: string }) {
           }}
           placeholder="you@email.com"
           aria-label="Email address"
-          className="h-10 flex-1 rounded-md border border-primary/35 bg-card px-4 text-sm text-primary placeholder:text-slate-500 transition-colors hover:border-primary/60 focus:border-primary dark:border-slate-700/60 dark:bg-slate-900/80 dark:text-white dark:placeholder:text-slate-500 dark:hover:border-slate-500 dark:focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/15"
+          className="h-10 min-w-0 flex-1 rounded-lg border border-primary/35 bg-card px-4 text-sm text-primary placeholder:text-slate-500 transition-colors hover:border-primary/60 focus:border-primary dark:border-slate-700/60 dark:bg-slate-900/80 dark:text-white dark:placeholder:text-slate-500 dark:hover:border-slate-500 dark:focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/15"
         />
         <button
           type="submit"
-          className="h-10 shrink-0 rounded-md bg-primary px-4 text-sm font-semibold tracking-tight text-primary-foreground transition-[transform,background-color] dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 hover:scale-[1.02] active:scale-[0.98]"
+          className="h-10 shrink-0 rounded-lg bg-primary px-4 text-sm font-semibold tracking-tight text-primary-foreground transition-[transform,background-color] dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 hover:scale-[1.02] active:scale-[0.98]"
         >
           Notify Me
         </button>
