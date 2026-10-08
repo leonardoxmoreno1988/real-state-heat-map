@@ -1,5 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="none">
-  <path d="M6 18 L20 6 L34 18 V34 H6 Z" stroke="#183659" stroke-width="4" stroke-linejoin="miter" />
-  <path d="M16 34 V24 H24 V34" stroke="#183659" stroke-width="3" stroke-linejoin="miter" />
-  <rect x="12.5" y="32.5" width="15" height="3.5" fill="#3EB6DC" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <style>
+    path { fill: #183659; }
+    @media (prefers-color-scheme: dark) {
+      path { fill: #f1f5f9; }
+    }
+  </style>
+  <path d="m141 466h80v-161.751l-80-35.556zm45-145h20v30h-20zm0 40h20v30h-20zm0 40h20v30h-20zm-30-80h20v30h-20zm0 40h20v30h-20zm0 40h20v30h-20z"/>
+  <path d="m51 466h80v-197.307l-80 35.556zm45-145h20v30h-20zm0 40h20v30h-20zm0 40h20v30h-20zm-30-80h20v30h-20zm0 40h20v30h-20zm0 40h20v30h-20z"/>
+  <path d="m171 271c0 .027-.008.053-.008.08l57.039 25.351c1.806.803 2.969 2.594 2.969 4.569v165h80v-418.063l-140 46.667zm85-170 40-10v20l-40 10zm0 30 40-10v20l-40 10zm0 30 40-10v20l-40 10zm0 30 40-10v20l-40 10zm0 30 40-10v20l-40 10zm0 30 40-10v20l-40 10zm0 30 40-10v20l-40 10zm0 30 40-10v20l-40 10zm-60-190 40-10v20l-40 10zm0 30 40-10v20l-40 10zm0 30 40-10v20l-40 10zm0 30 40-10v20l-40 10z"/>
+  <path d="m321 47.937v418.063h140v-371.396zm55 283.063-40-10v-20l40 10zm0-30-40-10v-20l40 10zm0-30-40-10v-20l40 10zm0-30-40-10v-20l40 10zm0-30-40-10v-20l40 10zm0-30-40-10v-20l40 10zm0-30-40-10v-20l40 10zm0-30-40-10v-20l40 10zm60 230-40-10v-20l40 10zm0-30-40-10v-20l40 10zm0-30-40-10v-20l40 10zm0-30-40-10v-20l40 10zm0-30-40-10v-20l40 10zm0-30-40-10v-20l40 10zm0-30-40-10v-20l40 10zm0-30-40-10v-20l40 10z"/>
 </svg>
