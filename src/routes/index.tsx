@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { keepPreviousData, queryOptions, useQuery } from "@tanstack/react-query";
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Building, Info, Minus, Moon, Plus, RotateCcw, Sun } from "lucide-react";
+import { Info, Minus, Moon, Plus, RotateCcw, Sun } from "lucide-react";
 import {
   TransformWrapper,
   TransformComponent,
@@ -1309,7 +1309,7 @@ function BottomSheet({
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-5 pb-3 pt-3 md:px-8 md:pt-4">
+            <div className="flex-1 overflow-y-auto px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3 md:px-8 md:pb-8 md:pt-4">
               <div className="flex flex-col gap-2">
                 <Segmented
                   size="lg"
@@ -1346,6 +1346,7 @@ function BottomSheet({
                   label="Avg DOM"
                   value={metrics && `${metrics.dom}`}
                   unit="days"
+                  infoAlign="end"
                   info="Average days on market: how long listings typically stay active before going into contract."
                 />
                 <Metric
@@ -1356,16 +1357,6 @@ function BottomSheet({
               </div>
 
               <LeadCapture neighborhoodName={displayName ?? neighborhood.name} />
-            </div>
-
-            <div className="shrink-0 border-t border-border/60 bg-card dark:border-slate-800/60 dark:bg-transparent px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 md:border-t-0 md:px-8 md:pb-7 md:pt-4">
-              <button
-                type="button"
-                className="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-transparent py-3 text-sm font-semibold tracking-[0.08em] text-slate-900 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-white dark:hover:bg-slate-800/50"
-              >
-                <Building size={16} strokeWidth={2} aria-hidden className="shrink-0" />
-                SEE LISTINGS
-              </button>
             </div>
           </>
         )}
@@ -1379,12 +1370,16 @@ function Metric({
   value,
   unit,
   info,
+  infoAlign = "start",
 }: {
   label: string;
   /** null renders a loading skeleton */
   value: string | null;
   unit?: string;
   info?: string;
+  /** Which side of the icon the tooltip extends from; "end" for the right grid column
+      so the tooltip doesn't overflow the sheet edge. */
+  infoAlign?: "start" | "end";
 }) {
   const [infoOpen, setInfoOpen] = useState(false);
   const tooltipId = useId();
@@ -1393,31 +1388,42 @@ function Metric({
       <span className="mb-1 flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
         {label}
         {info && (
-          <button
-            type="button"
-            aria-label={`About ${label}`}
-            aria-describedby={infoOpen ? tooltipId : undefined}
-            onClick={() => setInfoOpen((v) => !v)}
-            // Hover only for real mice; on touch the emulated enter + click
-            // would open and immediately toggle closed.
-            onPointerEnter={(e) => e.pointerType === "mouse" && setInfoOpen(true)}
-            onPointerLeave={(e) => e.pointerType === "mouse" && setInfoOpen(false)}
-            onBlur={() => setInfoOpen(false)}
-            className="-m-1 rounded-full p-1 text-slate-500 transition-colors hover:text-primary dark:text-slate-400"
-          >
-            <Info size={13} strokeWidth={2} />
-          </button>
+          <span className="relative inline-flex">
+            <button
+              type="button"
+              aria-label={`About ${label}`}
+              aria-describedby={infoOpen ? tooltipId : undefined}
+              onClick={() => setInfoOpen((v) => !v)}
+              // Hover only for real mice; on touch the emulated enter + click
+              // would open and immediately toggle closed.
+              onPointerEnter={(e) => e.pointerType === "mouse" && setInfoOpen(true)}
+              onPointerLeave={(e) => e.pointerType === "mouse" && setInfoOpen(false)}
+              onBlur={() => setInfoOpen(false)}
+              className="-m-1 rounded-full p-1 text-slate-500 transition-colors hover:text-primary dark:text-slate-400"
+            >
+              <Info size={13} strokeWidth={2} />
+            </button>
+            {infoOpen && (
+              <>
+                {/* Anchored above the icon so it never covers the numbers below */}
+                <span
+                  id={tooltipId}
+                  role="tooltip"
+                  className={`pointer-events-none absolute bottom-full z-50 mb-2 block w-64 rounded-xl border border-slate-200/60 bg-white p-3 text-xs font-normal normal-case leading-snug tracking-normal text-slate-700 shadow-xl dark:border-slate-700/60 dark:bg-slate-800 dark:text-slate-200 ${
+                    infoAlign === "end" ? "-right-3" : "-left-3"
+                  }`}
+                >
+                  {info}
+                </span>
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute bottom-full left-1/2 z-50 -translate-x-1/2 border-4 border-transparent border-t-white dark:border-t-slate-800"
+                />
+              </>
+            )}
+          </span>
         )}
       </span>
-      {info && infoOpen && (
-        <div
-          id={tooltipId}
-          role="tooltip"
-          className="absolute inset-x-0 top-full z-10 mt-1.5 rounded-md border border-border/60 bg-card px-3 py-2 text-xs normal-case leading-snug tracking-normal text-muted-foreground shadow-lg"
-        >
-          {info}
-        </div>
-      )}
       <span className="flex items-baseline gap-1">
         {value === null ? (
           <span className="h-8 w-20 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
