@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { keepPreviousData, queryOptions, useQuery } from "@tanstack/react-query";
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Info, Minus, Moon, Plus, RotateCcw, Sun } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   TransformWrapper,
   TransformComponent,
@@ -1195,15 +1196,18 @@ function DisclaimerInfo() {
       >
         <Info size={14} strokeWidth={1.8} />
       </button>
-      {open && (
-        <div
-          id={tooltipId}
-          role="tooltip"
-          className="absolute bottom-full left-0 mb-2 w-64 rounded-md border border-border/60 bg-card px-3 py-2 text-xs leading-snug text-muted-foreground shadow-lg backdrop-blur-md animate-in fade-in slide-in-from-bottom-1 duration-150"
-        >
-          Market indicators are estimates based on available listing data and may be delayed or incomplete. Not real estate, financial, legal, or investment advice.
-        </div>
-      )}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            {...TOOLTIP_MOTION}
+            id={tooltipId}
+            role="tooltip"
+            className="absolute bottom-full left-0 mb-2 w-64 origin-bottom-left rounded-md border border-border/60 bg-card px-3 py-2 text-xs leading-snug text-muted-foreground shadow-lg backdrop-blur-md"
+          >
+            Market indicators are estimates based on available listing data and may be delayed or incomplete. Not real estate, financial, legal, or investment advice.
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
@@ -1253,117 +1257,134 @@ function BottomSheet({
   const { bg: badgeBg, color: badgeColor, ring: badgeRing } = THERMAL_BADGE[thermal];
 
   return (
-    <>
+    // AnimatePresence keeps the last rendered sheet mounted while its exit animation plays,
+    // so the content doesn't blank out when the selection is cleared.
+    <AnimatePresence>
       {open && (
-        <button
+        <motion.button
+          key="sheet-backdrop"
           type="button"
           aria-label="Close panel"
           onClick={onClose}
-          className="fixed inset-0 z-40 bg-primary/20 backdrop-blur-sm dark:bg-black/50 transition-opacity animate-fade-in"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 z-40 bg-primary/20 backdrop-blur-sm dark:bg-black/50"
         />
       )}
-      <aside
-        aria-hidden={!open}
-        className={`fixed z-50 flex flex-col overflow-hidden border border-border/70 bg-card dark:border-slate-800/60 dark:bg-slate-900/95 dark:shadow-2xl dark:backdrop-blur-md dark:md:shadow-2xl transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] inset-x-0 bottom-0 mx-auto max-w-3xl rounded-2xl shadow-[0_-20px_60px_-20px_rgba(15,23,42,0.25)] md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2 md:mx-0 md:w-[min(576px,92vw)] md:max-w-xl md:rounded-2xl md:shadow-[0_30px_80px_-20px_rgba(15,23,42,0.35)] ${
-          open
-            ? "translate-y-0 opacity-100 md:-translate-x-1/2 md:-translate-y-1/2"
-            : "translate-y-full opacity-0 pointer-events-none md:-translate-x-1/2 md:-translate-y-[calc(50%-12px)]"
-        }`}
-        style={{ maxHeight: "88vh", height: "auto" }}
-      >
-        <div className="flex shrink-0 items-center justify-center pt-2.5 md:hidden">
-          <span className="h-1.5 w-10 rounded-full bg-border" />
-        </div>
+      {open && (
+        // Centering uses Tailwind's `translate` property, which composes with motion's `transform`.
+        <motion.aside
+          key="sheet"
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 15 }}
+          transition={{ type: "spring", damping: 25, stiffness: 300 }}
+          className="fixed z-50 flex flex-col overflow-hidden border border-border/70 bg-card dark:border-slate-800/60 dark:bg-slate-900/95 dark:shadow-2xl dark:backdrop-blur-md dark:md:shadow-2xl inset-x-0 bottom-0 mx-auto max-w-3xl rounded-2xl shadow-[0_-20px_60px_-20px_rgba(15,23,42,0.25)] md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2 md:mx-0 md:w-[min(576px,92vw)] md:max-w-xl md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl md:shadow-[0_30px_80px_-20px_rgba(15,23,42,0.35)]"
+          style={{ maxHeight: "88vh", height: "auto" }}
+        >
+          <div className="flex shrink-0 items-center justify-center pt-2.5 md:hidden">
+            <span className="h-1.5 w-10 rounded-full bg-border" />
+          </div>
 
-        {neighborhood && (
-          <>
-            <div className="flex shrink-0 items-center justify-between gap-3 px-5 pt-3 md:px-8 md:pt-7">
-              <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5">
-                <h2 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
-                  {displayName ?? neighborhood.name}
-                </h2>
-                {metrics ? (
-                  <span
-                    className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
-                    style={{ backgroundColor: badgeBg, color: badgeColor, boxShadow: badgeRing }}
-                  >
+          {neighborhood && (
+            <>
+              <div className="flex shrink-0 items-center justify-between gap-3 px-5 pt-3 md:px-8 md:pt-7">
+                <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5">
+                  <h2 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
+                    {displayName ?? neighborhood.name}
+                  </h2>
+                  {metrics ? (
                     <span
-                      className="h-1.5 w-1.5 rounded-full"
-                      style={{ backgroundColor: badgeColor }}
-                    />
-                    {THERMAL_LABEL[thermal]}
-                  </span>
-                ) : (
-                  <span className="block h-6 w-28 animate-pulse rounded-full bg-secondary dark:bg-slate-800" />
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={onClose}
-                aria-label="Close"
-                className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-secondary dark:text-slate-400 dark:hover:text-white"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3 md:px-8 md:pb-8 md:pt-4">
-              <div className="flex flex-col gap-2">
-                <Segmented
-                  size="lg"
-                  fullWidth
-                  options={TYPE_OPTIONS}
-                  value={localType}
-                  onChange={setLocalType}
-                />
-                <Segmented
-                  size="lg"
-                  fullWidth
-                  options={SIZE_OPTIONS}
-                  value={localSize}
-                  onChange={setLocalSize}
-                />
+                      className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
+                      style={{ backgroundColor: badgeBg, color: badgeColor, boxShadow: badgeRing }}
+                    >
+                      <span
+                        className="h-1.5 w-1.5 rounded-full"
+                        style={{ backgroundColor: badgeColor }}
+                      />
+                      {THERMAL_LABEL[thermal]}
+                    </span>
+                  ) : (
+                    <span className="block h-6 w-28 animate-pulse rounded-full bg-secondary dark:bg-slate-800" />
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  aria-label="Close"
+                  className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-secondary dark:text-slate-400 dark:hover:text-white"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                  </svg>
+                </button>
               </div>
 
+              <div className="flex-1 overflow-y-auto px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3 md:px-8 md:pb-8 md:pt-4">
+                <div className="flex flex-col gap-2">
+                  <Segmented
+                    size="lg"
+                    fullWidth
+                    options={TYPE_OPTIONS}
+                    value={localType}
+                    onChange={setLocalType}
+                  />
+                  <Segmented
+                    size="lg"
+                    fullWidth
+                    options={SIZE_OPTIONS}
+                    value={localSize}
+                    onChange={setLocalSize}
+                  />
+                </div>
 
 
-              {/* Dim stale numbers while a new filter combination loads */}
-              <div
-                aria-busy={updating}
-                className={`mt-4 grid grid-cols-2 gap-x-8 gap-y-6 py-3 transition-opacity duration-200 ${
-                  updating && metrics ? "opacity-60" : ""
-                }`}
-              >
-                <Metric
-                  label="Supply"
-                  value={metrics && `${metrics.supply}`}
-                  unit="mo"
-                  info="Months of supply: how long current listings would take to sell at the recent sales pace. Under 5 mo is a seller's market; over 6 mo is a buyer's market."
-                />
-                <Metric
-                  label="Avg DOM"
-                  value={metrics && `${metrics.dom}`}
-                  unit="days"
-                  infoAlign="end"
-                  info="Average days on market: how long listings typically stay active before going into contract."
-                />
-                <Metric
-                  label="Avg Price / sqft"
-                  value={metrics && `$${metrics.ppsf.toLocaleString()}`}
-                />
-                <Metric label="In Contract" value={metrics && `${metrics.inContract}`} />
+
+                {/* Dim stale numbers while a new filter combination loads */}
+                <div
+                  aria-busy={updating}
+                  className={`mt-4 grid grid-cols-2 gap-x-8 gap-y-6 py-3 transition-opacity duration-200 ${
+                    updating && metrics ? "opacity-60" : ""
+                  }`}
+                >
+                  <Metric
+                    label="Supply"
+                    value={metrics && `${metrics.supply}`}
+                    unit="mo"
+                    info="Months of supply: how long current listings would take to sell at the recent sales pace. Under 5 mo is a seller's market; over 6 mo is a buyer's market."
+                  />
+                  <Metric
+                    label="Avg DOM"
+                    value={metrics && `${metrics.dom}`}
+                    unit="days"
+                    infoAlign="end"
+                    info="Average days on market: how long listings typically stay active before going into contract."
+                  />
+                  <Metric
+                    label="Avg Price / sqft"
+                    value={metrics && `$${metrics.ppsf.toLocaleString()}`}
+                  />
+                  <Metric label="In Contract" value={metrics && `${metrics.inContract}`} />
+                </div>
+
+                <LeadCapture neighborhoodName={displayName ?? neighborhood.name} />
               </div>
-
-              <LeadCapture neighborhoodName={displayName ?? neighborhood.name} />
-            </div>
-          </>
-        )}
-      </aside>
-    </>
+            </>
+          )}
+        </motion.aside>
+      )}
+    </AnimatePresence>
   );
 }
+
+const TOOLTIP_MOTION = {
+  initial: { opacity: 0, scale: 0.9, y: 4 },
+  animate: { opacity: 1, scale: 1, y: 0 },
+  exit: { opacity: 0, scale: 0.9, y: 4 },
+  transition: { duration: 0.15, ease: "easeOut" },
+} as const;
 
 function Metric({
   label,
@@ -1403,24 +1424,30 @@ function Metric({
             >
               <Info size={13} strokeWidth={2} />
             </button>
-            {infoOpen && (
-              <>
-                {/* Anchored above the icon so it never covers the numbers below */}
-                <span
-                  id={tooltipId}
-                  role="tooltip"
-                  className={`pointer-events-none absolute bottom-full z-50 mb-2 block w-64 rounded-xl border border-slate-200/60 bg-white p-3 text-xs font-normal normal-case leading-snug tracking-normal text-slate-700 shadow-xl dark:border-slate-700/60 dark:bg-slate-800 dark:text-slate-200 ${
-                    infoAlign === "end" ? "-right-3" : "-left-3"
-                  }`}
-                >
-                  {info}
-                </span>
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute bottom-full left-1/2 z-50 -translate-x-1/2 border-4 border-transparent border-t-white dark:border-t-slate-800"
-                />
-              </>
-            )}
+            <AnimatePresence>
+              {infoOpen && (
+                <>
+                  {/* Anchored above the icon so it never covers the numbers below */}
+                  <motion.span
+                    key="tooltip"
+                    {...TOOLTIP_MOTION}
+                    id={tooltipId}
+                    role="tooltip"
+                    className={`pointer-events-none absolute bottom-full z-50 mb-2 block w-64 rounded-xl border border-slate-200/60 bg-white p-3 text-xs font-normal normal-case leading-snug tracking-normal text-slate-700 shadow-xl dark:border-slate-700/60 dark:bg-slate-800 dark:text-slate-200 ${
+                      infoAlign === "end" ? "-right-3 origin-bottom-right" : "-left-3 origin-bottom-left"
+                    }`}
+                  >
+                    {info}
+                  </motion.span>
+                  <motion.span
+                    key="caret"
+                    {...TOOLTIP_MOTION}
+                    aria-hidden
+                    className="pointer-events-none absolute bottom-full left-1/2 z-50 -translate-x-1/2 border-4 border-transparent border-t-white dark:border-t-slate-800"
+                  />
+                </>
+              )}
+            </AnimatePresence>
           </span>
         )}
       </span>
